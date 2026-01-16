@@ -1,0 +1,314 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 56;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		000000000000000000000010 /* EZHAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000001 /* EZHAApp.swift */; };
+		000000000000000000000011 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000002 /* RootView.swift */; };
+		000000000000000000000012 /* AuthLandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000003 /* AuthLandingView.swift */; };
+		000000000000000000000013 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000004 /* MainTabView.swift */; };
+		000000000000000000000014 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000005 /* TodayView.swift */; };
+		000000000000000000000015 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000006 /* HistoryView.swift */; };
+		000000000000000000000016 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000007 /* SettingsView.swift */; };
+		000000000000000000000017 /* AddLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000008 /* AddLogSheet.swift */; };
+		000000000000000000000018 /* MacroProgressTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000009 /* MacroProgressTable.swift */; };
+		000000000000000000000019 /* FoodEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000A /* FoodEntry.swift */; };
+		00000000000000000000001A /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000B /* SessionManager.swift */; };
+		00000000000000000000001B /* FoodLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000C /* FoodLogStore.swift */; };
+		00000000000000000000001C /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000D /* AIAnalysisService.swift */; };
+		00000000000000000000001D /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000E /* TodayViewModel.swift */; };
+		00000000000000000000001E /* AddLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000F /* AddLogViewModel.swift */; };
+		00000000000000000000001F /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000020 /* HistoryViewModel.swift */; };
+		000000000000000000000021 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000022 /* Assets.xcassets */; };
+		000000000000000000000023 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000024 /* Preview Assets.xcassets */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		000000000000000000000001 /* EZHAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZHAApp.swift; sourceTree = "<group>"; };
+		000000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		000000000000000000000003 /* AuthLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLandingView.swift; sourceTree = "<group>"; };
+		000000000000000000000004 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		000000000000000000000005 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		000000000000000000000006 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		000000000000000000000007 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		000000000000000000000008 /* AddLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogSheet.swift; sourceTree = "<group>"; };
+		000000000000000000000009 /* MacroProgressTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroProgressTable.swift; sourceTree = "<group>"; };
+		00000000000000000000000A /* FoodEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntry.swift; sourceTree = "<group>"; };
+		00000000000000000000000B /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		00000000000000000000000C /* FoodLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLogStore.swift; sourceTree = "<group>"; };
+		00000000000000000000000D /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
+		00000000000000000000000E /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
+		00000000000000000000000F /* AddLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogViewModel.swift; sourceTree = "<group>"; };
+		000000000000000000000020 /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
+		000000000000000000000022 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		000000000000000000000024 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		000000000000000000000025 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		000000000000000000000905 /* EZHA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EZHA.app; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		000000000000000000000100 = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000200 /* EZHA */,
+				000000000000000000000300 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		000000000000000000000200 /* EZHA */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000001 /* EZHAApp.swift */,
+				000000000000000000000400 /* Models */,
+				000000000000000000000500 /* Services */,
+				000000000000000000000600 /* ViewModels */,
+				000000000000000000000700 /* Views */,
+				000000000000000000000022 /* Assets.xcassets */,
+				000000000000000000000800 /* Preview Content */,
+				000000000000000000000025 /* Info.plist */,
+			);
+			path = EZHA;
+			sourceTree = "<group>";
+		};
+		000000000000000000000300 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000905 /* EZHA.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		000000000000000000000400 /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000000A /* FoodEntry.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		000000000000000000000500 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000000B /* SessionManager.swift */,
+				00000000000000000000000C /* FoodLogStore.swift */,
+				00000000000000000000000D /* AIAnalysisService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		000000000000000000000600 /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				00000000000000000000000E /* TodayViewModel.swift */,
+				00000000000000000000000F /* AddLogViewModel.swift */,
+				000000000000000000000020 /* HistoryViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		000000000000000000000700 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000002 /* RootView.swift */,
+				000000000000000000000003 /* AuthLandingView.swift */,
+				000000000000000000000004 /* MainTabView.swift */,
+				000000000000000000000005 /* TodayView.swift */,
+				000000000000000000000008 /* AddLogSheet.swift */,
+				000000000000000000000009 /* MacroProgressTable.swift */,
+				000000000000000000000006 /* HistoryView.swift */,
+				000000000000000000000007 /* SettingsView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		000000000000000000000800 /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				000000000000000000000024 /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		000000000000000000000900 /* EZHA */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 000000000000000000000901 /* Build configuration list for PBXNativeTarget "EZHA" */;
+			buildPhases = (
+				000000000000000000000902 /* Sources */,
+				000000000000000000000903 /* Resources */,
+				000000000000000000000904 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = EZHA;
+			productName = EZHA;
+			productReference = 000000000000000000000905 /* EZHA.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		000000000000000000000A00 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1500;
+				LastUpgradeCheck = 1500;
+				TargetAttributes = {
+					000000000000000000000900 = {
+						CreatedOnToolsVersion = 15.0;
+					};
+				};
+			};
+			buildConfigurationList = 000000000000000000000A01 /* Build configuration list for PBXProject "EZHA" */;
+			compatibilityVersion = "Xcode 15.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 000000000000000000000100;
+			productRefGroup = 000000000000000000000300 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				000000000000000000000900 /* EZHA */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		000000000000000000000903 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000021 /* Assets.xcassets in Resources */,
+				000000000000000000000023 /* Preview Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		000000000000000000000902 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				000000000000000000000010 /* EZHAApp.swift in Sources */,
+				000000000000000000000011 /* RootView.swift in Sources */,
+				000000000000000000000012 /* AuthLandingView.swift in Sources */,
+				000000000000000000000013 /* MainTabView.swift in Sources */,
+				000000000000000000000014 /* TodayView.swift in Sources */,
+				000000000000000000000017 /* AddLogSheet.swift in Sources */,
+				000000000000000000000018 /* MacroProgressTable.swift in Sources */,
+				000000000000000000000015 /* HistoryView.swift in Sources */,
+				000000000000000000000016 /* SettingsView.swift in Sources */,
+				000000000000000000000019 /* FoodEntry.swift in Sources */,
+				00000000000000000000001A /* SessionManager.swift in Sources */,
+				00000000000000000000001B /* FoodLogStore.swift in Sources */,
+				00000000000000000000001C /* AIAnalysisService.swift in Sources */,
+				00000000000000000000001D /* TodayViewModel.swift in Sources */,
+				00000000000000000000001E /* AddLogViewModel.swift in Sources */,
+				00000000000000000000001F /* HistoryViewModel.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		000000000000000000000904 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXBuildConfiguration section */
+		000000000000000000000A02 /* Debug */ = {
+			isa = PBXBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = EZHA/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ezha;
+				PRODUCT_NAME = EZHA;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		000000000000000000000A03 /* Release */ = {
+			isa = PBXBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_STYLE = Automatic;
+				DEVELOPMENT_TEAM = "";
+				INFOPLIST_FILE = EZHA/Info.plist;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.example.ezha;
+				PRODUCT_NAME = EZHA;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		000000000000000000000A04 /* Debug */ = {
+			isa = PBXBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		000000000000000000000A05 /* Release */ = {
+			isa = PBXBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				SWIFT_VERSION = 5.0;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+/* End PBXBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		000000000000000000000901 /* Build configuration list for PBXNativeTarget "EZHA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000A02 /* Debug */,
+				000000000000000000000A03 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		000000000000000000000A01 /* Build configuration list for PBXProject "EZHA" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				000000000000000000000A04 /* Debug */,
+				000000000000000000000A05 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 000000000000000000000A00 /* Project object */;
+}
