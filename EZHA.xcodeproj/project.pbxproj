@@ -3,229 +3,113 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 56;
+	objectVersion = 77;
 	objects = {
 
 /* Begin PBXBuildFile section */
-		000000000000000000000010 /* EZHAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000001 /* EZHAApp.swift */; };
-		000000000000000000000011 /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000002 /* RootView.swift */; };
-		000000000000000000000012 /* AuthLandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000003 /* AuthLandingView.swift */; };
-		000000000000000000000013 /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000004 /* MainTabView.swift */; };
-		000000000000000000000014 /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000005 /* TodayView.swift */; };
-		000000000000000000000015 /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000006 /* HistoryView.swift */; };
-		000000000000000000000016 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000007 /* SettingsView.swift */; };
-		000000000000000000000017 /* AddLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000008 /* AddLogSheet.swift */; };
-		000000000000000000000018 /* MacroProgressTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000009 /* MacroProgressTable.swift */; };
-		000000000000000000000019 /* FoodEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000A /* FoodEntry.swift */; };
-		00000000000000000000001A /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000B /* SessionManager.swift */; };
-		00000000000000000000001B /* FoodLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000C /* FoodLogStore.swift */; };
-		00000000000000000000001C /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000D /* AIAnalysisService.swift */; };
-		00000000000000000000001D /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000E /* TodayViewModel.swift */; };
-		00000000000000000000001E /* AddLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 00000000000000000000000F /* AddLogViewModel.swift */; };
-		00000000000000000000001F /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000020 /* HistoryViewModel.swift */; };
-		000000000000000000000021 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000022 /* Assets.xcassets */; };
-		000000000000000000000023 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 000000000000000000000024 /* Preview Assets.xcassets */; };
+		9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */; };
+		9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607352F1A5F5500825D3F /* SessionManager.swift */; };
+		9B0607712F1A5F5500825D3F /* SupabaseConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */; };
+		9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073F2F1A5F5500825D3F /* MainTabView.swift */; };
+		9B06074E2F1A5F5500825D3F /* TodayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607422F1A5F5500825D3F /* TodayView.swift */; };
+		9B06074F2F1A5F5500825D3F /* FoodLogStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607342F1A5F5500825D3F /* FoodLogStore.swift */; };
+		9B0607502F1A5F5500825D3F /* AddLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */; };
+		9B0607512F1A5F5500825D3F /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607412F1A5F5500825D3F /* SettingsView.swift */; };
+		9B0607522F1A5F5500825D3F /* AuthLandingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */; };
+		9B0607532F1A5F5500825D3F /* HistoryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */; };
+		9B0607542F1A5F5500825D3F /* RootView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607402F1A5F5500825D3F /* RootView.swift */; };
+		9B0607552F1A5F5500825D3F /* FoodEntry.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06072F2F1A5F5500825D3F /* FoodEntry.swift */; };
+		9B0607562F1A5F5500825D3F /* AddLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */; };
+		9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073D2F1A5F5500825D3F /* HistoryView.swift */; };
+		9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607392F1A5F5500825D3F /* TodayViewModel.swift */; };
+		9B0607592F1A5F5500825D3F /* EZHAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607452F1A5F5500825D3F /* EZHAApp.swift */; };
+		9B06075A2F1A5F5500825D3F /* MacroProgressTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */; };
+		9B06075B2F1A5F5500825D3F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */; };
+		9B06075C2F1A5F5500825D3F /* ai_estimation_contract.md in Resources */ = {isa = PBXBuildFile; fileRef = 9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */; };
+		9B06075D2F1A5F5500825D3F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607442F1A5F5500825D3F /* Assets.xcassets */; };
+		9B06075F2F1A5F5500825D3F /* AGENTS.md in Resources */ = {isa = PBXBuildFile; fileRef = 9B06072B2F1A5F5500825D3F /* AGENTS.md */; };
+		9B0607602F1A5F5500825D3F /* food_entries.md in Resources */ = {isa = PBXBuildFile; fileRef = 9B06072D2F1A5F5500825D3F /* food_entries.md */; };
+		9B0607662F1A89C100825D3F /* Supabase in Frameworks */ = {isa = PBXBuildFile; productRef = 9B0607652F1A89C100825D3F /* Supabase */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		9BD5BDA62F1A59F400593F55 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BD5BD902F1A59F200593F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BD5BD972F1A59F200593F55;
+			remoteInfo = Ezha;
+		};
+		9BD5BDB02F1A59F400593F55 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 9BD5BD902F1A59F200593F55 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 9BD5BD972F1A59F200593F55;
+			remoteInfo = Ezha;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
-		000000000000000000000001 /* EZHAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZHAApp.swift; sourceTree = "<group>"; };
-		000000000000000000000002 /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
-		000000000000000000000003 /* AuthLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLandingView.swift; sourceTree = "<group>"; };
-		000000000000000000000004 /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
-		000000000000000000000005 /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
-		000000000000000000000006 /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
-		000000000000000000000007 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
-		000000000000000000000008 /* AddLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogSheet.swift; sourceTree = "<group>"; };
-		000000000000000000000009 /* MacroProgressTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroProgressTable.swift; sourceTree = "<group>"; };
-		00000000000000000000000A /* FoodEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntry.swift; sourceTree = "<group>"; };
-		00000000000000000000000B /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
-		00000000000000000000000C /* FoodLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLogStore.swift; sourceTree = "<group>"; };
-		00000000000000000000000D /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
-		00000000000000000000000E /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
-		00000000000000000000000F /* AddLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogViewModel.swift; sourceTree = "<group>"; };
-		000000000000000000000020 /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
-		000000000000000000000022 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		000000000000000000000024 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
-		000000000000000000000025 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		000000000000000000000905 /* EZHA.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = EZHA.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9B06072B2F1A5F5500825D3F /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
+		9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ai_estimation_contract.md; sourceTree = "<group>"; };
+		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
+		9B06072F2F1A5F5500825D3F /* FoodEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntry.swift; sourceTree = "<group>"; };
+		9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
+		9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
+		9B0607342F1A5F5500825D3F /* FoodLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLogStore.swift; sourceTree = "<group>"; };
+		9B0607352F1A5F5500825D3F /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
+		9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogViewModel.swift; sourceTree = "<group>"; };
+		9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
+		9B0607392F1A5F5500825D3F /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
+		9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogSheet.swift; sourceTree = "<group>"; };
+		9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLandingView.swift; sourceTree = "<group>"; };
+		9B06073D2F1A5F5500825D3F /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
+		9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MacroProgressTable.swift; sourceTree = "<group>"; };
+		9B06073F2F1A5F5500825D3F /* MainTabView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MainTabView.swift; sourceTree = "<group>"; };
+		9B0607402F1A5F5500825D3F /* RootView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RootView.swift; sourceTree = "<group>"; };
+		9B0607412F1A5F5500825D3F /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
+		9B0607422F1A5F5500825D3F /* TodayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayView.swift; sourceTree = "<group>"; };
+		9B0607442F1A5F5500825D3F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		9B0607452F1A5F5500825D3F /* EZHAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZHAApp.swift; sourceTree = "<group>"; };
+		9B0607462F1A5F5500825D3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9B0607482F1A5F5500825D3F /* EZHA.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EZHA.xcodeproj; sourceTree = "<group>"; };
+		9B0607632F1A88E800825D3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Ezha/Info.plist; sourceTree = "<group>"; };
+		9BD5BD982F1A59F200593F55 /* Ezha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ezha.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD5BDA52F1A59F400593F55 /* EzhaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		9BD5BDAF2F1A59F400593F55 /* EzhaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
-/* Begin PBXGroup section */
-		000000000000000000000100 = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000200 /* EZHA */,
-				000000000000000000000300 /* Products */,
-			);
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		9BD5BDA82F1A59F400593F55 /* EzhaTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = EzhaTests;
 			sourceTree = "<group>";
 		};
-		000000000000000000000200 /* EZHA */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000001 /* EZHAApp.swift */,
-				000000000000000000000400 /* Models */,
-				000000000000000000000500 /* Services */,
-				000000000000000000000600 /* ViewModels */,
-				000000000000000000000700 /* Views */,
-				000000000000000000000022 /* Assets.xcassets */,
-				000000000000000000000800 /* Preview Content */,
-				000000000000000000000025 /* Info.plist */,
-			);
-			path = EZHA;
+		9BD5BDB22F1A59F400593F55 /* EzhaUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = EzhaUITests;
 			sourceTree = "<group>";
 		};
-		000000000000000000000300 /* Products */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000905 /* EZHA.app */,
-			);
-			name = Products;
-			sourceTree = "<group>";
-		};
-		000000000000000000000400 /* Models */ = {
-			isa = PBXGroup;
-			children = (
-				00000000000000000000000A /* FoodEntry.swift */,
-			);
-			path = Models;
-			sourceTree = "<group>";
-		};
-		000000000000000000000500 /* Services */ = {
-			isa = PBXGroup;
-			children = (
-				00000000000000000000000B /* SessionManager.swift */,
-				00000000000000000000000C /* FoodLogStore.swift */,
-				00000000000000000000000D /* AIAnalysisService.swift */,
-			);
-			path = Services;
-			sourceTree = "<group>";
-		};
-		000000000000000000000600 /* ViewModels */ = {
-			isa = PBXGroup;
-			children = (
-				00000000000000000000000E /* TodayViewModel.swift */,
-				00000000000000000000000F /* AddLogViewModel.swift */,
-				000000000000000000000020 /* HistoryViewModel.swift */,
-			);
-			path = ViewModels;
-			sourceTree = "<group>";
-		};
-		000000000000000000000700 /* Views */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000002 /* RootView.swift */,
-				000000000000000000000003 /* AuthLandingView.swift */,
-				000000000000000000000004 /* MainTabView.swift */,
-				000000000000000000000005 /* TodayView.swift */,
-				000000000000000000000008 /* AddLogSheet.swift */,
-				000000000000000000000009 /* MacroProgressTable.swift */,
-				000000000000000000000006 /* HistoryView.swift */,
-				000000000000000000000007 /* SettingsView.swift */,
-			);
-			path = Views;
-			sourceTree = "<group>";
-		};
-		000000000000000000000800 /* Preview Content */ = {
-			isa = PBXGroup;
-			children = (
-				000000000000000000000024 /* Preview Assets.xcassets */,
-			);
-			path = "Preview Content";
-			sourceTree = "<group>";
-		};
-/* End PBXGroup section */
-
-/* Begin PBXNativeTarget section */
-		000000000000000000000900 /* EZHA */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 000000000000000000000901 /* Build configuration list for PBXNativeTarget "EZHA" */;
-			buildPhases = (
-				000000000000000000000902 /* Sources */,
-				000000000000000000000903 /* Resources */,
-				000000000000000000000904 /* Frameworks */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = EZHA;
-			productName = EZHA;
-			productReference = 000000000000000000000905 /* EZHA.app */;
-			productType = "com.apple.product-type.application";
-		};
-/* End PBXNativeTarget section */
-
-/* Begin PBXProject section */
-		000000000000000000000A00 /* Project object */ = {
-			isa = PBXProject;
-			attributes = {
-				BuildIndependentTargetsInParallel = 1;
-				LastSwiftUpdateCheck = 1500;
-				LastUpgradeCheck = 1500;
-				TargetAttributes = {
-					000000000000000000000900 = {
-						CreatedOnToolsVersion = 15.0;
-					};
-				};
-			};
-			buildConfigurationList = 000000000000000000000A01 /* Build configuration list for PBXProject "EZHA" */;
-			compatibilityVersion = "Xcode 15.0";
-			developmentRegion = en;
-			hasScannedForEncodings = 0;
-			knownRegions = (
-				en,
-				Base,
-			);
-			mainGroup = 000000000000000000000100;
-			productRefGroup = 000000000000000000000300 /* Products */;
-			projectDirPath = "";
-			projectRoot = "";
-			targets = (
-				000000000000000000000900 /* EZHA */,
-			);
-		};
-/* End PBXProject section */
-
-/* Begin PBXResourcesBuildPhase section */
-		000000000000000000000903 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				000000000000000000000021 /* Assets.xcassets in Resources */,
-				000000000000000000000023 /* Preview Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXResourcesBuildPhase section */
-
-/* Begin PBXSourcesBuildPhase section */
-		000000000000000000000902 /* Sources */ = {
-			isa = PBXSourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
-				000000000000000000000010 /* EZHAApp.swift in Sources */,
-				000000000000000000000011 /* RootView.swift in Sources */,
-				000000000000000000000012 /* AuthLandingView.swift in Sources */,
-				000000000000000000000013 /* MainTabView.swift in Sources */,
-				000000000000000000000014 /* TodayView.swift in Sources */,
-				000000000000000000000017 /* AddLogSheet.swift in Sources */,
-				000000000000000000000018 /* MacroProgressTable.swift in Sources */,
-				000000000000000000000015 /* HistoryView.swift in Sources */,
-				000000000000000000000016 /* SettingsView.swift in Sources */,
-				000000000000000000000019 /* FoodEntry.swift in Sources */,
-				00000000000000000000001A /* SessionManager.swift in Sources */,
-				00000000000000000000001B /* FoodLogStore.swift in Sources */,
-				00000000000000000000001C /* AIAnalysisService.swift in Sources */,
-				00000000000000000000001D /* TodayViewModel.swift in Sources */,
-				00000000000000000000001E /* AddLogViewModel.swift in Sources */,
-				00000000000000000000001F /* HistoryViewModel.swift in Sources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-/* End PBXSourcesBuildPhase section */
+/* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
-		000000000000000000000904 /* Frameworks */ = {
+		9BD5BD952F1A59F200593F55 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B0607662F1A89C100825D3F /* Supabase in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDA22F1A59F400593F55 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDAC2F1A59F400593F55 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -234,81 +118,628 @@
 		};
 /* End PBXFrameworksBuildPhase section */
 
-/* Begin PBXBuildConfiguration section */
-		000000000000000000000A02 /* Debug */ = {
-			isa = PBXBuildConfiguration;
+/* Begin PBXGroup section */
+		9B06072E2F1A5F5500825D3F /* docs */ = {
+			isa = PBXGroup;
+			children = (
+				9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */,
+				9B06072D2F1A5F5500825D3F /* food_entries.md */,
+			);
+			path = docs;
+			sourceTree = "<group>";
+		};
+		9B0607302F1A5F5500825D3F /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		9B0607322F1A5F5500825D3F /* Preview Content */ = {
+			isa = PBXGroup;
+			children = (
+				9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */,
+			);
+			path = "Preview Content";
+			sourceTree = "<group>";
+		};
+		9B0607362F1A5F5500825D3F /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */,
+				9B0607342F1A5F5500825D3F /* FoodLogStore.swift */,
+				9B0607352F1A5F5500825D3F /* SessionManager.swift */,
+				9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		9B06073A2F1A5F5500825D3F /* ViewModels */ = {
+			isa = PBXGroup;
+			children = (
+				9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */,
+				9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */,
+				9B0607392F1A5F5500825D3F /* TodayViewModel.swift */,
+			);
+			path = ViewModels;
+			sourceTree = "<group>";
+		};
+		9B0607432F1A5F5500825D3F /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */,
+				9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */,
+				9B06073D2F1A5F5500825D3F /* HistoryView.swift */,
+				9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */,
+				9B06073F2F1A5F5500825D3F /* MainTabView.swift */,
+				9B0607402F1A5F5500825D3F /* RootView.swift */,
+				9B0607412F1A5F5500825D3F /* SettingsView.swift */,
+				9B0607422F1A5F5500825D3F /* TodayView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		9B0607472F1A5F5500825D3F /* EZHA */ = {
+			isa = PBXGroup;
+			children = (
+				9B0607302F1A5F5500825D3F /* Models */,
+				9B0607322F1A5F5500825D3F /* Preview Content */,
+				9B0607362F1A5F5500825D3F /* Services */,
+				9B06073A2F1A5F5500825D3F /* ViewModels */,
+				9B0607432F1A5F5500825D3F /* Views */,
+				9B0607442F1A5F5500825D3F /* Assets.xcassets */,
+				9B0607452F1A5F5500825D3F /* EZHAApp.swift */,
+				9B0607462F1A5F5500825D3F /* Info.plist */,
+			);
+			path = EZHA;
+			sourceTree = "<group>";
+		};
+		9B0607492F1A5F5500825D3F /* Products */ = {
+			isa = PBXGroup;
+			name = Products;
+			sourceTree = "<group>";
+		};
+		9B0607642F1A89B300825D3F /* Frameworks */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			name = Frameworks;
+			sourceTree = "<group>";
+		};
+		9BD5BD8F2F1A59F200593F55 = {
+			isa = PBXGroup;
+			children = (
+				9B0607632F1A88E800825D3F /* Info.plist */,
+				9BD5BDA82F1A59F400593F55 /* EzhaTests */,
+				9BD5BDB22F1A59F400593F55 /* EzhaUITests */,
+				9BD5BD992F1A59F200593F55 /* Products */,
+				9B06072B2F1A5F5500825D3F /* AGENTS.md */,
+				9B06072E2F1A5F5500825D3F /* docs */,
+				9B0607472F1A5F5500825D3F /* EZHA */,
+				9B0607482F1A5F5500825D3F /* EZHA.xcodeproj */,
+				9B0607642F1A89B300825D3F /* Frameworks */,
+			);
+			sourceTree = "<group>";
+		};
+		9BD5BD992F1A59F200593F55 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				9BD5BD982F1A59F200593F55 /* Ezha.app */,
+				9BD5BDA52F1A59F400593F55 /* EzhaTests.xctest */,
+				9BD5BDAF2F1A59F400593F55 /* EzhaUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		9BD5BD972F1A59F200593F55 /* Ezha */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BD5BDB92F1A59F400593F55 /* Build configuration list for PBXNativeTarget "Ezha" */;
+			buildPhases = (
+				9BD5BD942F1A59F200593F55 /* Sources */,
+				9BD5BD952F1A59F200593F55 /* Frameworks */,
+				9BD5BD962F1A59F200593F55 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = Ezha;
+			packageProductDependencies = (
+				9B0607652F1A89C100825D3F /* Supabase */,
+			);
+			productName = Ezha;
+			productReference = 9BD5BD982F1A59F200593F55 /* Ezha.app */;
+			productType = "com.apple.product-type.application";
+		};
+		9BD5BDA42F1A59F400593F55 /* EzhaTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BD5BDBC2F1A59F400593F55 /* Build configuration list for PBXNativeTarget "EzhaTests" */;
+			buildPhases = (
+				9BD5BDA12F1A59F400593F55 /* Sources */,
+				9BD5BDA22F1A59F400593F55 /* Frameworks */,
+				9BD5BDA32F1A59F400593F55 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9BD5BDA72F1A59F400593F55 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9BD5BDA82F1A59F400593F55 /* EzhaTests */,
+			);
+			name = EzhaTests;
+			packageProductDependencies = (
+			);
+			productName = EzhaTests;
+			productReference = 9BD5BDA52F1A59F400593F55 /* EzhaTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		9BD5BDAE2F1A59F400593F55 /* EzhaUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 9BD5BDBF2F1A59F400593F55 /* Build configuration list for PBXNativeTarget "EzhaUITests" */;
+			buildPhases = (
+				9BD5BDAB2F1A59F400593F55 /* Sources */,
+				9BD5BDAC2F1A59F400593F55 /* Frameworks */,
+				9BD5BDAD2F1A59F400593F55 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				9BD5BDB12F1A59F400593F55 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				9BD5BDB22F1A59F400593F55 /* EzhaUITests */,
+			);
+			name = EzhaUITests;
+			packageProductDependencies = (
+			);
+			productName = EzhaUITests;
+			productReference = 9BD5BDAF2F1A59F400593F55 /* EzhaUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		9BD5BD902F1A59F200593F55 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1640;
+				LastUpgradeCheck = 1640;
+				TargetAttributes = {
+					9BD5BD972F1A59F200593F55 = {
+						CreatedOnToolsVersion = 16.4;
+					};
+					9BD5BDA42F1A59F400593F55 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 9BD5BD972F1A59F200593F55;
+					};
+					9BD5BDAE2F1A59F400593F55 = {
+						CreatedOnToolsVersion = 16.4;
+						TestTargetID = 9BD5BD972F1A59F200593F55;
+					};
+				};
+			};
+			buildConfigurationList = 9BD5BD932F1A59F200593F55 /* Build configuration list for PBXProject "EZHA" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+			);
+			mainGroup = 9BD5BD8F2F1A59F200593F55;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				9B0607622F1A6A8F00825D3F /* XCRemoteSwiftPackageReference "supabase-swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 9BD5BD992F1A59F200593F55 /* Products */;
+			projectDirPath = "";
+			projectReferences = (
+				{
+					ProductGroup = 9B0607492F1A5F5500825D3F /* Products */;
+					ProjectRef = 9B0607482F1A5F5500825D3F /* EZHA.xcodeproj */;
+				},
+			);
+			projectRoot = "";
+			targets = (
+				9BD5BD972F1A59F200593F55 /* Ezha */,
+				9BD5BDA42F1A59F400593F55 /* EzhaTests */,
+				9BD5BDAE2F1A59F400593F55 /* EzhaUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		9BD5BD962F1A59F200593F55 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B06075B2F1A5F5500825D3F /* Preview Assets.xcassets in Resources */,
+				9B06075C2F1A5F5500825D3F /* ai_estimation_contract.md in Resources */,
+				9B06075D2F1A5F5500825D3F /* Assets.xcassets in Resources */,
+				9B06075F2F1A5F5500825D3F /* AGENTS.md in Resources */,
+				9B0607602F1A5F5500825D3F /* food_entries.md in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDA32F1A59F400593F55 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDAD2F1A59F400593F55 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		9BD5BD942F1A59F200593F55 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
+				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
+				9B0607712F1A5F5500825D3F /* SupabaseConfig.swift in Sources */,
+				9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */,
+				9B06074E2F1A5F5500825D3F /* TodayView.swift in Sources */,
+				9B06074F2F1A5F5500825D3F /* FoodLogStore.swift in Sources */,
+				9B0607502F1A5F5500825D3F /* AddLogViewModel.swift in Sources */,
+				9B0607512F1A5F5500825D3F /* SettingsView.swift in Sources */,
+				9B0607522F1A5F5500825D3F /* AuthLandingView.swift in Sources */,
+				9B0607532F1A5F5500825D3F /* HistoryViewModel.swift in Sources */,
+				9B0607542F1A5F5500825D3F /* RootView.swift in Sources */,
+				9B0607552F1A5F5500825D3F /* FoodEntry.swift in Sources */,
+				9B0607562F1A5F5500825D3F /* AddLogSheet.swift in Sources */,
+				9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */,
+				9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */,
+				9B0607592F1A5F5500825D3F /* EZHAApp.swift in Sources */,
+				9B06075A2F1A5F5500825D3F /* MacroProgressTable.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDA12F1A59F400593F55 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		9BD5BDAB2F1A59F400593F55 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		9BD5BDA72F1A59F400593F55 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BD5BD972F1A59F200593F55 /* Ezha */;
+			targetProxy = 9BD5BDA62F1A59F400593F55 /* PBXContainerItemProxy */;
+		};
+		9BD5BDB12F1A59F400593F55 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 9BD5BD972F1A59F200593F55 /* Ezha */;
+			targetProxy = 9BD5BDB02F1A59F400593F55 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		9BD5BDB72F1A59F400593F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = EZHA/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ezha;
-				PRODUCT_NAME = EZHA;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
 			};
 			name = Debug;
 		};
-		000000000000000000000A03 /* Release */ = {
-			isa = PBXBuildConfiguration;
+		9BD5BDB82F1A59F400593F55 /* Release */ = {
+			isa = XCBuildConfiguration;
 			buildSettings = {
-				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				CODE_SIGN_STYLE = Automatic;
-				DEVELOPMENT_TEAM = "";
-				INFOPLIST_FILE = EZHA/Info.plist;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.example.ezha;
-				PRODUCT_NAME = EZHA;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 1;
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				VALIDATE_PRODUCT = YES;
 			};
 			name = Release;
 		};
-		000000000000000000000A04 /* Debug */ = {
-			isa = PBXBuildConfiguration;
+		9BD5BDBA2F1A59F400593F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ezha/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.Ezha;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Debug;
 		};
-		000000000000000000000A05 /* Release */ = {
-			isa = PBXBuildConfiguration;
+		9BD5BDBB2F1A59F400593F55 /* Release */ = {
+			isa = XCBuildConfiguration;
 			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = Ezha/Info.plist;
+				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
+				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = "UIInterfaceOrientationPortrait UIInterfaceOrientationLandscapeLeft UIInterfaceOrientationLandscapeRight";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.Ezha;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
-				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
-				SUPPORTED_PLATFORMS = iphoneos iphonesimulator;
-				TARGETED_DEVICE_FAMILY = 1;
+				TARGETED_DEVICE_FAMILY = "1,2";
 			};
 			name = Release;
 		};
-/* End PBXBuildConfiguration section */
+		9BD5BDBD2F1A59F400593F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.EzhaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ezha.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ezha";
+			};
+			name = Debug;
+		};
+		9BD5BDBE2F1A59F400593F55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 18.5;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.EzhaTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Ezha.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/Ezha";
+			};
+			name = Release;
+		};
+		9BD5BDC02F1A59F400593F55 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.EzhaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Ezha;
+			};
+			name = Debug;
+		};
+		9BD5BDC12F1A59F400593F55 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = daryna.EzhaUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_TARGET_NAME = Ezha;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
-		000000000000000000000901 /* Build configuration list for PBXNativeTarget "EZHA" */ = {
+		9BD5BD932F1A59F200593F55 /* Build configuration list for PBXProject "EZHA" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				000000000000000000000A02 /* Debug */,
-				000000000000000000000A03 /* Release */,
+				9BD5BDB72F1A59F400593F55 /* Debug */,
+				9BD5BDB82F1A59F400593F55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
 		};
-		000000000000000000000A01 /* Build configuration list for PBXProject "EZHA" */ = {
+		9BD5BDB92F1A59F400593F55 /* Build configuration list for PBXNativeTarget "Ezha" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
-				000000000000000000000A04 /* Debug */,
-				000000000000000000000A05 /* Release */,
+				9BD5BDBA2F1A59F400593F55 /* Debug */,
+				9BD5BDBB2F1A59F400593F55 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Debug;
+			defaultConfigurationName = Release;
+		};
+		9BD5BDBC2F1A59F400593F55 /* Build configuration list for PBXNativeTarget "EzhaTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BD5BDBD2F1A59F400593F55 /* Debug */,
+				9BD5BDBE2F1A59F400593F55 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		9BD5BDBF2F1A59F400593F55 /* Build configuration list for PBXNativeTarget "EzhaUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9BD5BDC02F1A59F400593F55 /* Debug */,
+				9BD5BDC12F1A59F400593F55 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		9B0607622F1A6A8F00825D3F /* XCRemoteSwiftPackageReference "supabase-swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/supabase/supabase-swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 2.5.1;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		9B0607652F1A89C100825D3F /* Supabase */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 9B0607622F1A6A8F00825D3F /* XCRemoteSwiftPackageReference "supabase-swift" */;
+			productName = Supabase;
+		};
+/* End XCSwiftPackageProductDependency section */
 	};
-	rootObject = 000000000000000000000A00 /* Project object */;
+	rootObject = 9BD5BD902F1A59F200593F55 /* Project object */;
 }

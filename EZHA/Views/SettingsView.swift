@@ -8,7 +8,9 @@ struct SettingsView: View {
             Form {
                 Section {
                     Button(role: .destructive) {
-                        sessionManager.signOut()
+                        Task {
+                            await sessionManager.signOut()
+                        }
                     } label: {
                         Text("Sign out")
                     }
