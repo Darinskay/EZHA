@@ -24,7 +24,10 @@ final class SettingsViewModel: ObservableObject {
 
         do {
             let userId = try await SupabaseConfig.client.auth.session.user.id
-            let defaultProfile = Profile.defaultTargets(for: userId)
+            let defaultProfile = Profile.defaultTargets(
+                for: userId,
+                activeDate: Self.dateFormatter.string(from: Date())
+            )
             try await profileRepository.ensureProfileRowExists(defaultTargets: defaultProfile)
 
             if let profile = try await profileRepository.fetchProfile() {
@@ -64,4 +67,13 @@ final class SettingsViewModel: ObservableObject {
             errorMessage = "Unable to save targets."
         }
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }

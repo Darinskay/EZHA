@@ -11,15 +11,15 @@ struct HistoryView: View {
                         Text(errorMessage)
                             .foregroundColor(.red)
                     }
-                } else if viewModel.dailyTotals.isEmpty {
+                } else if viewModel.dailySummaries.isEmpty {
                     Section {
                         Text("No entries yet.")
                             .foregroundColor(.secondary)
                     }
                 }
-                ForEach(viewModel.dailyTotals, id: \.date) { entry in
-                    Section(header: Text(entry.date, style: .date)) {
-                        HistoryRow(totals: entry.totals)
+                ForEach(viewModel.dailySummaries, id: \.date) { summary in
+                    Section(header: Text(viewModel.dateLabel(from: summary.date))) {
+                        HistoryRow(summary: summary)
                     }
                 }
             }
@@ -38,18 +38,34 @@ struct HistoryView: View {
                 await viewModel.loadHistory()
             }
         }
+        .onReceive(NotificationCenter.default.publisher(for: .dayReset)) { _ in
+            Task {
+                await viewModel.loadHistory()
+            }
+        }
     }
 }
 
 private struct HistoryRow: View {
-    let totals: MacroTotals
+    let summary: DailySummary
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text("Calories: \(totals.calories)")
-            Text("Protein: \(totals.protein)g  Carbs: \(totals.carbs)g  Fat: \(totals.fat)g")
-                .font(.caption)
-                .foregroundColor(.secondary)
+            if summary.hasData {
+                Text("Calories: \(Int(summary.calories)) / \(Int(summary.caloriesTarget))")
+                Text("Protein: \(Int(summary.protein))g / \(Int(summary.proteinTarget))g")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text("Carbs: \(Int(summary.carbs))g / \(Int(summary.carbsTarget))g")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Text("Fat: \(Int(summary.fat))g / \(Int(summary.fatTarget))g")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            } else {
+                Text("No data")
+                    .foregroundColor(.secondary)
+            }
         }
         .padding(.vertical, 4)
     }

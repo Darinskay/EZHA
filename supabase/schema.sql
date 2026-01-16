@@ -9,6 +9,7 @@ create table if not exists public.profiles (
     protein_target numeric not null default 0,
     carbs_target numeric not null default 0,
     fat_target numeric not null default 0,
+    active_date date not null default current_date,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -30,11 +31,29 @@ create table if not exists public.food_entries (
     created_at timestamptz not null default now()
 );
 
+create table if not exists public.daily_summaries (
+    user_id uuid not null references auth.users(id) on delete cascade,
+    date date not null,
+    calories numeric not null default 0,
+    protein numeric not null default 0,
+    carbs numeric not null default 0,
+    fat numeric not null default 0,
+    calories_target numeric not null default 0,
+    protein_target numeric not null default 0,
+    carbs_target numeric not null default 0,
+    fat_target numeric not null default 0,
+    has_data boolean not null default true,
+    created_at timestamptz not null default now(),
+    primary key (user_id, date)
+);
+
 create index if not exists food_entries_user_date_idx on public.food_entries (user_id, date);
 create index if not exists profiles_updated_at_idx on public.profiles (updated_at);
+create index if not exists daily_summaries_user_date_idx on public.daily_summaries (user_id, date);
 
 alter table public.profiles enable row level security;
 alter table public.food_entries enable row level security;
+alter table public.daily_summaries enable row level security;
 
 create policy "Profiles select" on public.profiles
     for select using (auth.uid() = user_id);
@@ -46,6 +65,9 @@ create policy "Profiles update" on public.profiles
     for update using (auth.uid() = user_id);
 
 create policy "Food entries all" on public.food_entries
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "Daily summaries all" on public.daily_summaries
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create or replace function public.set_profiles_updated_at()

@@ -30,12 +30,15 @@ struct ProfileRepository {
         fat: Double
     ) async throws {
         let userId = try await currentUserId()
+        let activeDate = (try? await fetchProfile())?.activeDate
+            ?? Self.dateFormatter.string(from: Date())
         let payload = Profile(
             userId: userId,
             caloriesTarget: calories,
             proteinTarget: protein,
             carbsTarget: carbs,
             fatTarget: fat,
+            activeDate: activeDate,
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -55,7 +58,37 @@ struct ProfileRepository {
             .execute()
     }
 
+    func updateActiveDate(_ dateString: String) async throws {
+        let userId = try await currentUserId()
+        try await supabase
+            .from("profiles")
+            .update(["active_date": dateString])
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+    }
+
+    func fetchActiveDate() async throws -> String {
+        let userId = try await currentUserId()
+        let profile: Profile = try await supabase
+            .from("profiles")
+            .select()
+            .eq("user_id", value: userId.uuidString)
+            .single()
+            .execute()
+            .value
+        return profile.activeDate
+    }
+
     private func currentUserId() async throws -> UUID {
         try await supabase.auth.session.user.id
     }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }

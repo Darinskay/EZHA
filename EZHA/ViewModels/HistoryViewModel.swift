@@ -2,15 +2,20 @@ import Foundation
 
 @MainActor
 final class HistoryViewModel: ObservableObject {
-    @Published private(set) var dailyTotals: [(date: Date, totals: MacroTotals)] = []
+    @Published private(set) var dailySummaries: [DailySummary] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
 
     let daysToShow: Int = 60
-    private let entryRepository: FoodEntryRepository
+    private let summaryRepository: DailySummaryRepository
+    private let profileRepository: ProfileRepository
 
-    init(entryRepository: FoodEntryRepository = FoodEntryRepository()) {
-        self.entryRepository = entryRepository
+    init(
+        summaryRepository: DailySummaryRepository = DailySummaryRepository(),
+        profileRepository: ProfileRepository = ProfileRepository()
+    ) {
+        self.summaryRepository = summaryRepository
+        self.profileRepository = profileRepository
     }
 
     func loadHistory() async {
@@ -19,48 +24,68 @@ final class HistoryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let calendar = Calendar.current
-            let endDate = calendar.startOfDay(for: Date())
-            guard let startDate = calendar.date(byAdding: .day, value: -(daysToShow - 1), to: endDate) else {
-                dailyTotals = []
+            guard let profile = try await profileRepository.fetchProfile() else {
+                dailySummaries = []
                 return
             }
-
-            let entries = try await entryRepository.fetchEntries(
-                from: startDate,
-                to: endDate,
-                timeZone: TimeZone.current
+            let endDate = Self.dateFromString(profile.activeDate)
+            let end = Calendar.current.date(byAdding: .day, value: -1, to: endDate ?? Date()) ?? Date()
+            guard let start = Calendar.current.date(byAdding: .day, value: -(daysToShow - 1), to: end) else {
+                dailySummaries = []
+                return
+            }
+            let startString = Self.dateFormatter.string(from: start)
+            let endString = Self.dateFormatter.string(from: end)
+            let summaries = try await summaryRepository.fetchSummaries(
+                from: startString,
+                to: endString
             )
-            dailyTotals = Self.groupedTotals(entries: entries, from: startDate, to: endDate)
+            dailySummaries = Self.mergeSummaries(
+                summaries: summaries,
+                startDate: start,
+                endDate: end
+            )
         } catch {
             errorMessage = "Unable to load history."
         }
     }
 
-    private static func groupedTotals(
-        entries: [FoodEntry],
-        from startDate: Date,
-        to endDate: Date
-    ) -> [(date: Date, totals: MacroTotals)] {
+    private static func mergeSummaries(
+        summaries: [DailySummary],
+        startDate: Date,
+        endDate: Date
+    ) -> [DailySummary] {
         let calendar = Calendar.current
-        var grouped: [Date: MacroTotals] = [:]
-
-        for entry in entries {
-            guard let entryDate = dateFromString(entry.date) else { continue }
-            let totals = grouped[entryDate] ?? .zero
-            grouped[entryDate] = MacroTotals(
-                calories: totals.calories + Int(entry.calories),
-                protein: totals.protein + Int(entry.protein),
-                carbs: totals.carbs + Int(entry.carbs),
-                fat: totals.fat + Int(entry.fat)
-            )
+        var summaryByDate: [String: DailySummary] = [:]
+        for summary in summaries {
+            summaryByDate[summary.date] = summary
         }
+        let fallbackUserId = summaries.first?.userId ?? UUID()
 
-        var results: [(date: Date, totals: MacroTotals)] = []
+        var results: [DailySummary] = []
         var day = startDate
         while day <= endDate {
-            let dayTotals = grouped[day] ?? .zero
-            results.append((day, dayTotals))
+            let dateString = dateFormatter.string(from: day)
+            if let summary = summaryByDate[dateString] {
+                results.append(summary)
+            } else {
+                results.append(
+                    DailySummary(
+                        userId: fallbackUserId,
+                        date: dateString,
+                        calories: 0,
+                        protein: 0,
+                        carbs: 0,
+                        fat: 0,
+                        caloriesTarget: 0,
+                        proteinTarget: 0,
+                        carbsTarget: 0,
+                        fatTarget: 0,
+                        hasData: false,
+                        createdAt: nil
+                    )
+                )
+            }
             guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
             day = next
         }
@@ -69,11 +94,30 @@ final class HistoryViewModel: ObservableObject {
     }
 
     private static func dateFromString(_ value: String) -> Date? {
+        dateFormatter.date(from: value)
+    }
+
+    func dateLabel(from value: String) -> String {
+        guard let date = Self.dateFromString(value) else { return value }
+        return Self.displayFormatter.string(from: date)
+    }
+
+    private static let dateFormatter: DateFormatter = {
         let formatter = DateFormatter()
         formatter.calendar = Calendar(identifier: .gregorian)
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
-        return formatter.date(from: value)
-    }
+        return formatter
+    }()
+
+    private static let displayFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale.current
+        formatter.timeZone = TimeZone.current
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        return formatter
+    }()
 }

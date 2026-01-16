@@ -30,6 +30,8 @@
 		9B06078B2F1A5F5500825D3F /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607832F1A5F5500825D3F /* StorageService.swift */; };
 		9B06078C2F1A5F5500825D3F /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607842F1A5F5500825D3F /* Notifications.swift */; };
 		9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */; };
+		9B06078E2F1A5F5500825D3F /* DailySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607902F1A5F5500825D3F /* DailySummary.swift */; };
+		9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */; };
 		9B06075B2F1A5F5500825D3F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */; };
 		9B06075C2F1A5F5500825D3F /* ai_estimation_contract.md in Resources */ = {isa = PBXBuildFile; fileRef = 9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */; };
 		9B06075D2F1A5F5500825D3F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607442F1A5F5500825D3F /* Assets.xcassets */; };
@@ -61,6 +63,7 @@
 		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
 		9B06072F2F1A5F5500825D3F /* FoodEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntry.swift; sourceTree = "<group>"; };
 		9B0607802F1A5F5500825D3F /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
+		9B0607902F1A5F5500825D3F /* DailySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummary.swift; sourceTree = "<group>"; };
 		9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
 		9B0607342F1A5F5500825D3F /* FoodLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLogStore.swift; sourceTree = "<group>"; };
@@ -70,6 +73,7 @@
 		9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntryRepository.swift; sourceTree = "<group>"; };
 		9B0607832F1A5F5500825D3F /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
 		9B0607842F1A5F5500825D3F /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
+		9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummaryRepository.swift; sourceTree = "<group>"; };
 		9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogViewModel.swift; sourceTree = "<group>"; };
 		9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		9B0607392F1A5F5500825D3F /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
@@ -152,6 +156,7 @@
 		9B0607302F1A5F5500825D3F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				9B0607902F1A5F5500825D3F /* DailySummary.swift */,
 				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
 				9B0607802F1A5F5500825D3F /* Profile.swift */,
 			);
@@ -170,6 +175,7 @@
 			isa = PBXGroup;
 			children = (
 				9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */,
+				9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */,
 				9B0607342F1A5F5500825D3F /* FoodLogStore.swift */,
 				9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */,
 				9B0607842F1A5F5500825D3F /* Notifications.swift */,
@@ -418,6 +424,7 @@
 			files = (
 				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
 				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
+				9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */,
 				9B0607892F1A5F5500825D3F /* ProfileRepository.swift in Sources */,
 				9B06078A2F1A5F5500825D3F /* FoodEntryRepository.swift in Sources */,
 				9B06078B2F1A5F5500825D3F /* StorageService.swift in Sources */,
@@ -433,6 +440,7 @@
 				9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */,
 				9B0607542F1A5F5500825D3F /* RootView.swift in Sources */,
 				9B0607552F1A5F5500825D3F /* FoodEntry.swift in Sources */,
+				9B06078E2F1A5F5500825D3F /* DailySummary.swift in Sources */,
 				9B0607882F1A5F5500825D3F /* Profile.swift in Sources */,
 				9B0607562F1A5F5500825D3F /* AddLogSheet.swift in Sources */,
 				9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */,

@@ -19,15 +19,18 @@ final class AddLogViewModel: ObservableObject {
 
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
+    private let profileRepository: ProfileRepository
     private let storageService: StorageService
 
     init(
         analysisService: AIAnalysisService = AIAnalysisService(),
         entryRepository: FoodEntryRepository = FoodEntryRepository(),
+        profileRepository: ProfileRepository = ProfileRepository(),
         storageService: StorageService = StorageService()
     ) {
         self.analysisService = analysisService
         self.entryRepository = entryRepository
+        self.profileRepository = profileRepository
         self.storageService = storageService
     }
 
@@ -82,7 +85,7 @@ final class AddLogViewModel: ObservableObject {
         do {
             let userId = try await SupabaseConfig.client.auth.session.user.id
             let entryId = UUID()
-            let dateString = Self.dateFormatter.string(from: Date())
+            let activeDate = try await resolvedActiveDate(for: userId)
             var imagePath: String?
 
             if let imageData = selectedImageData {
@@ -96,7 +99,7 @@ final class AddLogViewModel: ObservableObject {
             let entry = FoodEntry(
                 id: entryId,
                 userId: userId,
-                date: dateString,
+                date: activeDate,
                 inputType: inputType.databaseValue,
                 inputText: inputText.isEmpty ? nil : inputText,
                 imagePath: imagePath,
@@ -133,15 +136,6 @@ final class AddLogViewModel: ObservableObject {
         errorMessage = nil
     }
 
-    private static let dateFormatter: DateFormatter = {
-        let formatter = DateFormatter()
-        formatter.calendar = Calendar(identifier: .gregorian)
-        formatter.locale = Locale(identifier: "en_US_POSIX")
-        formatter.timeZone = TimeZone.current
-        formatter.dateFormat = "yyyy-MM-dd"
-        return formatter
-    }()
-
     private func aiSourceValue(for inputType: LogInputType) -> String {
         switch inputType {
         case .text:
@@ -150,4 +144,23 @@ final class AddLogViewModel: ObservableObject {
             return "food_photo"
         }
     }
+
+    private func resolvedActiveDate(for userId: UUID) async throws -> String {
+        if let profile = try await profileRepository.fetchProfile() {
+            return profile.activeDate
+        }
+        let dateString = Self.dateFormatter.string(from: Date())
+        let defaultProfile = Profile.defaultTargets(for: userId, activeDate: dateString)
+        try await profileRepository.ensureProfileRowExists(defaultTargets: defaultProfile)
+        return dateString
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }

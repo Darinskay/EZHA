@@ -31,6 +31,19 @@ struct TodayView: View {
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
+                    .disabled(viewModel.isLoading)
+
+                    Button {
+                        Task {
+                            await viewModel.startNewDay()
+                            NotificationCenter.default.post(name: .dayReset, object: nil)
+                        }
+                    } label: {
+                        Label("Start New Day", systemImage: "arrow.clockwise")
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.bordered)
+                    .disabled(viewModel.isLoading)
                 }
                 .padding()
             }
@@ -43,6 +56,11 @@ struct TodayView: View {
             await viewModel.loadToday()
         }
         .onReceive(NotificationCenter.default.publisher(for: .foodEntrySaved)) { _ in
+            Task {
+                await viewModel.loadToday()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .dayReset)) { _ in
             Task {
                 await viewModel.loadToday()
             }

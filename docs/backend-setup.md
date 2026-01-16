@@ -2,7 +2,7 @@
 
 ## Supabase SQL
 - Apply `supabase/schema.sql` in the Supabase SQL editor or via Supabase CLI.
-- Ensure RLS is enabled for `profiles` and `food_entries`.
+- Ensure RLS is enabled for `profiles`, `food_entries`, and `daily_summaries`.
 
 ## Storage
 - Create a bucket named `food-images` (private).
