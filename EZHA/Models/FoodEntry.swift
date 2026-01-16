@@ -1,42 +1,36 @@
 import Foundation
 
-struct FoodEntry: Identifiable, Hashable {
-    let id: UUID
-    let date: Date
-    var calories: Int
-    var protein: Int
-    var carbs: Int
-    var fat: Int
-    var inputType: LogInputType
-    var inputText: String
-    var imageData: Data?
-    var aiConfidence: Double
+struct FoodEntry: Identifiable, Codable, Hashable {
+    var id: UUID
+    var userId: UUID
+    var date: String
+    var inputType: String
+    var inputText: String?
+    var imagePath: String?
+    var calories: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+    var aiConfidence: Double?
     var aiSource: String
+    var aiNotes: String
+    var createdAt: Date?
 
-    init(
-        id: UUID = UUID(),
-        date: Date,
-        calories: Int,
-        protein: Int,
-        carbs: Int,
-        fat: Int,
-        inputType: LogInputType,
-        inputText: String,
-        imageData: Data?,
-        aiConfidence: Double,
-        aiSource: String
-    ) {
-        self.id = id
-        self.date = date
-        self.calories = calories
-        self.protein = protein
-        self.carbs = carbs
-        self.fat = fat
-        self.inputType = inputType
-        self.inputText = inputText
-        self.imageData = imageData
-        self.aiConfidence = aiConfidence
-        self.aiSource = aiSource
+    enum CodingKeys: String, CodingKey {
+        case id
+        case userId = "user_id"
+        case date
+        case inputType = "input_type"
+        case inputText = "input_text"
+        case imagePath = "image_path"
+        case calories
+        case protein
+        case carbs
+        case fat
+        case aiConfidence = "ai_confidence"
+        case aiSource = "ai_source"
+        case aiNotes = "ai_notes"
+        case createdAt = "created_at"
     }
 }
 
@@ -64,6 +58,17 @@ enum LogInputType: String, CaseIterable, Identifiable {
     case photoText = "Photo + Text"
 
     var id: String { rawValue }
+
+    var databaseValue: String {
+        switch self {
+        case .photo:
+            return "photo"
+        case .text:
+            return "text"
+        case .photoText:
+            return "photo+text"
+        }
+    }
 }
 
 struct MacroEstimate: Hashable {

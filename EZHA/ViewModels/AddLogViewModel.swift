@@ -14,12 +14,24 @@ final class AddLogViewModel: ObservableObject {
     @Published var carbsText: String = ""
     @Published var fatText: String = ""
     @Published var isAnalyzing: Bool = false
+    @Published var isSaving: Bool = false
     @Published var errorMessage: String? = nil
 
     private let analysisService: AIAnalysisService
+    private let entryRepository: FoodEntryRepository
+    private let profileRepository: ProfileRepository
+    private let storageService: StorageService
 
-    init(analysisService: AIAnalysisService = AIAnalysisService()) {
+    init(
+        analysisService: AIAnalysisService = AIAnalysisService(),
+        entryRepository: FoodEntryRepository = FoodEntryRepository(),
+        profileRepository: ProfileRepository = ProfileRepository(),
+        storageService: StorageService = StorageService()
+    ) {
         self.analysisService = analysisService
+        self.entryRepository = entryRepository
+        self.profileRepository = profileRepository
+        self.storageService = storageService
     }
 
     var isPhotoEnabled: Bool {
@@ -57,27 +69,56 @@ final class AddLogViewModel: ObservableObject {
         }
     }
 
-    func buildEntry() -> FoodEntry? {
+    func saveEntry() async -> Bool {
         guard let calories = Int(caloriesText),
               let protein = Int(proteinText),
               let carbs = Int(carbsText),
               let fat = Int(fatText),
               let estimate = estimate else {
-            return nil
+            errorMessage = "Please enter valid macros."
+            return false
         }
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
 
-        return FoodEntry(
-            date: Date(),
-            calories: calories,
-            protein: protein,
-            carbs: carbs,
-            fat: fat,
-            inputType: inputType,
-            inputText: inputText,
-            imageData: selectedImageData,
-            aiConfidence: estimate.confidence,
-            aiSource: estimate.source
-        )
+        do {
+            let userId = try await SupabaseConfig.client.auth.session.user.id
+            let entryId = UUID()
+            let activeDate = try await resolvedActiveDate(for: userId)
+            var imagePath: String?
+
+            if let imageData = selectedImageData {
+                imagePath = try await storageService.uploadFoodImage(
+                    data: imageData,
+                    userId: userId,
+                    entryId: entryId
+                )
+            }
+
+            let entry = FoodEntry(
+                id: entryId,
+                userId: userId,
+                date: activeDate,
+                inputType: inputType.databaseValue,
+                inputText: inputText.isEmpty ? nil : inputText,
+                imagePath: imagePath,
+                calories: Double(calories),
+                protein: Double(protein),
+                carbs: Double(carbs),
+                fat: Double(fat),
+                aiConfidence: estimate.confidence,
+                aiSource: aiSourceValue(for: inputType),
+                aiNotes: estimate.source,
+                createdAt: nil
+            )
+
+            try await entryRepository.insertFoodEntry(entry)
+            return true
+        } catch {
+            errorMessage = "Unable to save entry: \(error.localizedDescription)"
+            return false
+        }
     }
 
     func reset() {
@@ -91,6 +132,35 @@ final class AddLogViewModel: ObservableObject {
         carbsText = ""
         fatText = ""
         isAnalyzing = false
+        isSaving = false
         errorMessage = nil
     }
+
+    private func aiSourceValue(for inputType: LogInputType) -> String {
+        switch inputType {
+        case .text:
+            return "text"
+        case .photo, .photoText:
+            return "food_photo"
+        }
+    }
+
+    private func resolvedActiveDate(for userId: UUID) async throws -> String {
+        if let profile = try await profileRepository.fetchProfile() {
+            return profile.activeDate
+        }
+        let dateString = Self.dateFormatter.string(from: Date())
+        let defaultProfile = Profile.defaultTargets(for: userId, activeDate: dateString)
+        try await profileRepository.ensureProfileRowExists(defaultTargets: defaultProfile)
+        return dateString
+    }
+
+    private static let dateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale(identifier: "en_US_POSIX")
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
 }
