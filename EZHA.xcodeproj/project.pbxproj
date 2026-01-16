@@ -24,6 +24,12 @@
 		9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607392F1A5F5500825D3F /* TodayViewModel.swift */; };
 		9B0607592F1A5F5500825D3F /* EZHAApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607452F1A5F5500825D3F /* EZHAApp.swift */; };
 		9B06075A2F1A5F5500825D3F /* MacroProgressTable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */; };
+		9B0607882F1A5F5500825D3F /* Profile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607802F1A5F5500825D3F /* Profile.swift */; };
+		9B0607892F1A5F5500825D3F /* ProfileRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607812F1A5F5500825D3F /* ProfileRepository.swift */; };
+		9B06078A2F1A5F5500825D3F /* FoodEntryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */; };
+		9B06078B2F1A5F5500825D3F /* StorageService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607832F1A5F5500825D3F /* StorageService.swift */; };
+		9B06078C2F1A5F5500825D3F /* Notifications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607842F1A5F5500825D3F /* Notifications.swift */; };
+		9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */; };
 		9B06075B2F1A5F5500825D3F /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */; };
 		9B06075C2F1A5F5500825D3F /* ai_estimation_contract.md in Resources */ = {isa = PBXBuildFile; fileRef = 9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */; };
 		9B06075D2F1A5F5500825D3F /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 9B0607442F1A5F5500825D3F /* Assets.xcassets */; };
@@ -54,14 +60,20 @@
 		9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ai_estimation_contract.md; sourceTree = "<group>"; };
 		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
 		9B06072F2F1A5F5500825D3F /* FoodEntry.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntry.swift; sourceTree = "<group>"; };
+		9B0607802F1A5F5500825D3F /* Profile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Profile.swift; sourceTree = "<group>"; };
 		9B0607312F1A5F5500825D3F /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AIAnalysisService.swift; sourceTree = "<group>"; };
 		9B0607342F1A5F5500825D3F /* FoodLogStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLogStore.swift; sourceTree = "<group>"; };
 		9B0607352F1A5F5500825D3F /* SessionManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SessionManager.swift; sourceTree = "<group>"; };
 		9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SupabaseConfig.swift; sourceTree = "<group>"; };
+		9B0607812F1A5F5500825D3F /* ProfileRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileRepository.swift; sourceTree = "<group>"; };
+		9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEntryRepository.swift; sourceTree = "<group>"; };
+		9B0607832F1A5F5500825D3F /* StorageService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = StorageService.swift; sourceTree = "<group>"; };
+		9B0607842F1A5F5500825D3F /* Notifications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Notifications.swift; sourceTree = "<group>"; };
 		9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogViewModel.swift; sourceTree = "<group>"; };
 		9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryViewModel.swift; sourceTree = "<group>"; };
 		9B0607392F1A5F5500825D3F /* TodayViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TodayViewModel.swift; sourceTree = "<group>"; };
+		9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewModel.swift; sourceTree = "<group>"; };
 		9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AddLogSheet.swift; sourceTree = "<group>"; };
 		9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AuthLandingView.swift; sourceTree = "<group>"; };
 		9B06073D2F1A5F5500825D3F /* HistoryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HistoryView.swift; sourceTree = "<group>"; };
@@ -73,6 +85,7 @@
 		9B0607442F1A5F5500825D3F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		9B0607452F1A5F5500825D3F /* EZHAApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EZHAApp.swift; sourceTree = "<group>"; };
 		9B0607462F1A5F5500825D3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		9B0607862F1A5F5500825D3F /* schema.sql */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.sql; path = schema.sql; sourceTree = "<group>"; };
 		9B0607482F1A5F5500825D3F /* EZHA.xcodeproj */ = {isa = PBXFileReference; lastKnownFileType = "wrapper.pb-project"; path = EZHA.xcodeproj; sourceTree = "<group>"; };
 		9B0607632F1A88E800825D3F /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Ezha/Info.plist; sourceTree = "<group>"; };
 		9BD5BD982F1A59F200593F55 /* Ezha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ezha.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -128,10 +141,19 @@
 			path = docs;
 			sourceTree = "<group>";
 		};
+		9B0607872F1A5F5500825D3F /* supabase */ = {
+			isa = PBXGroup;
+			children = (
+				9B0607862F1A5F5500825D3F /* schema.sql */,
+			);
+			path = supabase;
+			sourceTree = "<group>";
+		};
 		9B0607302F1A5F5500825D3F /* Models */ = {
 			isa = PBXGroup;
 			children = (
 				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
+				9B0607802F1A5F5500825D3F /* Profile.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -149,7 +171,11 @@
 			children = (
 				9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */,
 				9B0607342F1A5F5500825D3F /* FoodLogStore.swift */,
+				9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */,
+				9B0607842F1A5F5500825D3F /* Notifications.swift */,
+				9B0607812F1A5F5500825D3F /* ProfileRepository.swift */,
 				9B0607352F1A5F5500825D3F /* SessionManager.swift */,
+				9B0607832F1A5F5500825D3F /* StorageService.swift */,
 				9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */,
 			);
 			path = Services;
@@ -160,6 +186,7 @@
 			children = (
 				9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */,
 				9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */,
+				9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */,
 				9B0607392F1A5F5500825D3F /* TodayViewModel.swift */,
 			);
 			path = ViewModels;
@@ -216,6 +243,7 @@
 				9BD5BD992F1A59F200593F55 /* Products */,
 				9B06072B2F1A5F5500825D3F /* AGENTS.md */,
 				9B06072E2F1A5F5500825D3F /* docs */,
+				9B0607872F1A5F5500825D3F /* supabase */,
 				9B0607472F1A5F5500825D3F /* EZHA */,
 				9B0607482F1A5F5500825D3F /* EZHA.xcodeproj */,
 				9B0607642F1A89B300825D3F /* Frameworks */,
@@ -390,6 +418,10 @@
 			files = (
 				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
 				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
+				9B0607892F1A5F5500825D3F /* ProfileRepository.swift in Sources */,
+				9B06078A2F1A5F5500825D3F /* FoodEntryRepository.swift in Sources */,
+				9B06078B2F1A5F5500825D3F /* StorageService.swift in Sources */,
+				9B06078C2F1A5F5500825D3F /* Notifications.swift in Sources */,
 				9B0607712F1A5F5500825D3F /* SupabaseConfig.swift in Sources */,
 				9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */,
 				9B06074E2F1A5F5500825D3F /* TodayView.swift in Sources */,
@@ -398,8 +430,10 @@
 				9B0607512F1A5F5500825D3F /* SettingsView.swift in Sources */,
 				9B0607522F1A5F5500825D3F /* AuthLandingView.swift in Sources */,
 				9B0607532F1A5F5500825D3F /* HistoryViewModel.swift in Sources */,
+				9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */,
 				9B0607542F1A5F5500825D3F /* RootView.swift in Sources */,
 				9B0607552F1A5F5500825D3F /* FoodEntry.swift in Sources */,
+				9B0607882F1A5F5500825D3F /* Profile.swift in Sources */,
 				9B0607562F1A5F5500825D3F /* AddLogSheet.swift in Sources */,
 				9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */,
 				9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */,

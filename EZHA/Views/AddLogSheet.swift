@@ -5,7 +5,6 @@ struct AddLogSheet: View {
     @Environment(
         \.dismiss
     ) private var dismiss
-    @EnvironmentObject private var logStore: FoodLogStore
     @StateObject private var viewModel = AddLogViewModel()
 
     var body: some View {
@@ -73,14 +72,26 @@ struct AddLogSheet: View {
                     }
 
                     Section {
-                        Button("Save") {
-                            if let entry = viewModel.buildEntry() {
-                                logStore.add(entry)
-                                viewModel.reset()
-                                dismiss()
+                        Button {
+                            Task {
+                                let didSave = await viewModel.saveEntry()
+                                if didSave {
+                                    viewModel.reset()
+                                    dismiss()
+                                    NotificationCenter.default.post(name: .foodEntrySaved, object: nil)
+                                }
+                            }
+                        } label: {
+                            if viewModel.isSaving {
+                                ProgressView()
+                                    .frame(maxWidth: .infinity)
+                            } else {
+                                Text("Save")
+                                    .frame(maxWidth: .infinity)
                             }
                         }
                         .frame(maxWidth: .infinity)
+                        .disabled(viewModel.isSaving)
                     }
                 }
             }

@@ -1,19 +1,42 @@
 import SwiftUI
 
 struct HistoryView: View {
-    @EnvironmentObject private var logStore: FoodLogStore
     @StateObject private var viewModel = HistoryViewModel()
 
     var body: some View {
         NavigationStack {
             List {
-                ForEach(viewModel.recentTotals(from: logStore), id: \.date) { entry in
+                if let errorMessage = viewModel.errorMessage {
+                    Section {
+                        Text(errorMessage)
+                            .foregroundColor(.red)
+                    }
+                } else if viewModel.dailyTotals.isEmpty {
+                    Section {
+                        Text("No entries yet.")
+                            .foregroundColor(.secondary)
+                    }
+                }
+                ForEach(viewModel.dailyTotals, id: \.date) { entry in
                     Section(header: Text(entry.date, style: .date)) {
                         HistoryRow(totals: entry.totals)
                     }
                 }
             }
             .navigationTitle("History")
+        }
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView()
+            }
+        }
+        .task {
+            await viewModel.loadHistory()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .foodEntrySaved)) { _ in
+            Task {
+                await viewModel.loadHistory()
+            }
         }
     }
 }

@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct TodayView: View {
-    @EnvironmentObject private var logStore: FoodLogStore
     @StateObject private var viewModel = TodayViewModel()
     @State private var isPresentingAddLog = false
 
@@ -11,10 +10,20 @@ struct TodayView: View {
                 VStack(alignment: .leading, spacing: 16) {
                     Text("Today's Progress")
                         .font(.title2.weight(.semibold))
-                    MacroProgressTable(
-                        targets: viewModel.targets,
-                        eaten: viewModel.eatenTotals(from: logStore)
-                    )
+                    if viewModel.isLoading {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, alignment: .center)
+                    } else {
+                        MacroProgressTable(
+                            targets: viewModel.targets,
+                            eaten: viewModel.totals
+                        )
+                    }
+                    if let errorMessage = viewModel.errorMessage {
+                        Text(errorMessage)
+                            .font(.footnote)
+                            .foregroundColor(.red)
+                    }
                     Button {
                         isPresentingAddLog = true
                     } label: {
@@ -29,6 +38,14 @@ struct TodayView: View {
         }
         .sheet(isPresented: $isPresentingAddLog) {
             AddLogSheet()
+        }
+        .task {
+            await viewModel.loadToday()
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .foodEntrySaved)) { _ in
+            Task {
+                await viewModel.loadToday()
+            }
         }
     }
 }
