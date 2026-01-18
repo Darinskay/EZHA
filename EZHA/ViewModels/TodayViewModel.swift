@@ -6,6 +6,7 @@ final class TodayViewModel: ObservableObject {
     @Published private(set) var targets: MacroTargets = .example
     @Published private(set) var totals: MacroTotals = .zero
     @Published private(set) var activeDate: String = ""
+    @Published private(set) var entries: [FoodEntry] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
 
@@ -50,6 +51,7 @@ final class TodayViewModel: ObservableObject {
                 for: dateFromString(activeDate) ?? Date(),
                 timeZone: TimeZone.current
             )
+            self.entries = entries
             totals = Self.totals(from: entries)
         } catch {
             errorMessage = "Unable to load today's data."
@@ -91,9 +93,23 @@ final class TodayViewModel: ObservableObject {
             let nextDate = nextDayString(from: profile.activeDate)
             try await profileRepository.updateActiveDate(nextDate)
             activeDate = nextDate
+            self.entries = []
             self.totals = .zero
         } catch {
             errorMessage = "Unable to start a new day."
+        }
+    }
+
+    func deleteEntry(id: UUID) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await entryRepository.deleteEntry(id: id)
+            await loadToday()
+        } catch {
+            errorMessage = "Unable to delete entry."
         }
     }
 

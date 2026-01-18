@@ -25,8 +25,16 @@ enum SupabaseConfig {
         return url
     }
 
+    static var url: URL {
+        supabaseURL
+    }
+
     private static var supabaseAnonKey: String {
         infoPlistValue(for: "SUPABASE_ANON_KEY")
+    }
+
+    static var anonKey: String {
+        supabaseAnonKey
     }
 
     private static func infoPlistValue(for key: String) -> String {

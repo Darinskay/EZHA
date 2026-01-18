@@ -3,11 +3,13 @@ import SwiftUI
 struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
     @State private var isPresentingAddLog = false
+    @State private var entryPendingDelete: FoodEntry?
+    @State private var isShowingDeleteConfirm = false
 
     var body: some View {
         NavigationStack {
-            ScrollView {
-                VStack(alignment: .leading, spacing: 16) {
+            List {
+                Section {
                     Text("Today's Progress")
                         .font(.title2.weight(.semibold))
                     if viewModel.isLoading {
@@ -24,13 +26,22 @@ struct TodayView: View {
                             .font(.footnote)
                             .foregroundColor(.red)
                     }
+                }
+
+                Section {
                     Button {
                         isPresentingAddLog = true
                     } label: {
-                        Label("Add log", systemImage: "plus")
-                            .frame(maxWidth: .infinity, minHeight: 44)
+                        HStack {
+                            Image(systemName: "plus.circle.fill")
+                                .imageScale(.large)
+                            Text("Add log")
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
+                    .tint(.blue)
+                    .foregroundStyle(.white)
                     .disabled(viewModel.isLoading)
 
                     Button {
@@ -39,15 +50,49 @@ struct TodayView: View {
                             NotificationCenter.default.post(name: .dayReset, object: nil)
                         }
                     } label: {
-                        Label("Start New Day", systemImage: "arrow.clockwise")
-                            .frame(maxWidth: .infinity, minHeight: 44)
+                        HStack {
+                            Image(systemName: "arrow.clockwise")
+                                .imageScale(.medium)
+                            Text("Start New Day")
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.bordered)
                     .disabled(viewModel.isLoading)
                 }
-                .padding()
+
+                Section(header: Text("Today")) {
+                    if viewModel.entries.isEmpty {
+                        Text("No items yet.")
+                            .foregroundColor(.secondary)
+                    }
+                    ForEach(viewModel.entries) { entry in
+                        TodayEntryRow(entry: entry)
+                    }
+                    .onDelete { indexSet in
+                        guard let index = indexSet.first else { return }
+                        entryPendingDelete = viewModel.entries[index]
+                        isShowingDeleteConfirm = true
+                    }
+                }
             }
             .navigationTitle("Today")
+            .confirmationDialog(
+                "Delete entry?",
+                isPresented: $isShowingDeleteConfirm,
+                titleVisibility: .visible
+            ) {
+                Button("Delete", role: .destructive) {
+                    guard let entry = entryPendingDelete else { return }
+                    Task {
+                        await viewModel.deleteEntry(id: entry.id)
+                    }
+                    entryPendingDelete = nil
+                }
+                Button("Cancel", role: .cancel) {
+                    entryPendingDelete = nil
+                }
+            }
         }
         .sheet(isPresented: $isPresentingAddLog) {
             AddLogSheet()
@@ -65,5 +110,43 @@ struct TodayView: View {
                 await viewModel.loadToday()
             }
         }
+    }
+}
+
+private struct TodayEntryRow: View {
+    let entry: FoodEntry
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(entry.inputText ?? "Meal")
+                .font(.headline)
+            Text("Calories: \(Int(entry.calories))  P \(Int(entry.protein))g  C \(Int(entry.carbs))g  F \(Int(entry.fat))g")
+                .font(.subheadline)
+                .foregroundColor(.secondary)
+            if entry.imagePath != nil {
+                Text("Photo attached")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+            Text(TimeLabelFormatter.label(from: entry.createdAt))
+                .font(.caption)
+                .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private enum TimeLabelFormatter {
+    private static let formatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.locale = Locale.current
+        formatter.timeStyle = .short
+        formatter.dateStyle = .none
+        return formatter
+    }()
+
+    static func label(from date: Date?) -> String {
+        guard let date else { return "Time unavailable" }
+        return formatter.string(from: date)
     }
 }

@@ -76,6 +76,7 @@ struct MacroEstimate: Hashable {
     var protein: Int
     var carbs: Int
     var fat: Int
-    var confidence: Double
+    var confidence: Double?
     var source: String
+    var notes: String
 }

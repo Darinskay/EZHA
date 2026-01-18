@@ -65,7 +65,7 @@ final class AddLogViewModel: ObservableObject {
             carbsText = String(result.carbs)
             fatText = String(result.fat)
         } catch {
-            errorMessage = "Analysis failed. Please try again."
+            errorMessage = error.localizedDescription
         }
     }
 
@@ -108,8 +108,8 @@ final class AddLogViewModel: ObservableObject {
                 carbs: Double(carbs),
                 fat: Double(fat),
                 aiConfidence: estimate.confidence,
-                aiSource: aiSourceValue(for: inputType),
-                aiNotes: estimate.source,
+                aiSource: estimate.source,
+                aiNotes: estimate.notes,
                 createdAt: nil
             )
 
@@ -134,15 +134,6 @@ final class AddLogViewModel: ObservableObject {
         isAnalyzing = false
         isSaving = false
         errorMessage = nil
-    }
-
-    private func aiSourceValue(for inputType: LogInputType) -> String {
-        switch inputType {
-        case .text:
-            return "text"
-        case .photo, .photoText:
-            return "food_photo"
-        }
     }
 
     private func resolvedActiveDate(for userId: UUID) async throws -> String {
