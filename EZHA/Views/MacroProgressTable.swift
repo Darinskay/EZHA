@@ -5,13 +5,14 @@ struct MacroProgressTable: View {
     let eaten: MacroTotals
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             MacroRow(label: "Calories", target: targets.calories, eaten: eaten.calories)
             MacroRow(label: "Protein", target: targets.protein, eaten: eaten.protein, unit: "g")
             MacroRow(label: "Carbs", target: targets.carbs, eaten: eaten.carbs, unit: "g")
             MacroRow(label: "Fat", target: targets.fat, eaten: eaten.fat, unit: "g")
         }
-        .padding()
+        .padding(.vertical, 10)
+        .padding(.horizontal, 12)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 12))
     }

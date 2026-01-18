@@ -8,14 +8,26 @@ struct SettingsView: View {
         NavigationStack {
             Form {
                 Section("Daily Targets") {
-                    TextField("Calories", text: $viewModel.caloriesText)
-                        .keyboardType(.numberPad)
-                    TextField("Protein (g)", text: $viewModel.proteinText)
-                        .keyboardType(.numberPad)
-                    TextField("Carbs (g)", text: $viewModel.carbsText)
-                        .keyboardType(.numberPad)
-                    TextField("Fat (g)", text: $viewModel.fatText)
-                        .keyboardType(.numberPad)
+                    LabeledContent("Calories") {
+                        TextField("", text: $viewModel.caloriesText)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("Protein (g)") {
+                        TextField("", text: $viewModel.proteinText)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("Carbs (g)") {
+                        TextField("", text: $viewModel.carbsText)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
+                    LabeledContent("Fat (g)") {
+                        TextField("", text: $viewModel.fatText)
+                            .keyboardType(.numberPad)
+                            .multilineTextAlignment(.trailing)
+                    }
 
                     Button("Save Targets") {
                         Task {
@@ -52,6 +64,7 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
+            .dismissKeyboardOnTap()
         }
         .task {
             await viewModel.loadTargets()

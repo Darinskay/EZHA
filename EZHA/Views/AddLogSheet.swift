@@ -1,5 +1,6 @@
 import PhotosUI
 import SwiftUI
+import UIKit
 
 struct AddLogSheet: View {
     @Environment(
@@ -10,51 +11,50 @@ struct AddLogSheet: View {
     var body: some View {
         NavigationStack {
             Form {
-                Section("Input Type") {
-                    Picker("Input", selection: $viewModel.inputType) {
-                        ForEach(LogInputType.allCases) { type in
-                            Text(type.rawValue).tag(type)
-                        }
+                Section("Photo") {
+                    PhotosPicker(selection: $viewModel.selectedItem, matching: .images) {
+                        Label("Select Photo", systemImage: "photo")
                     }
-                    .pickerStyle(.segmented)
-                }
-
-                if viewModel.isPhotoEnabled {
-                    Section("Photo") {
-                        PhotosPicker(selection: $viewModel.selectedItem, matching: .images) {
-                            Label("Select Photo", systemImage: "photo")
-                        }
-                        if viewModel.selectedImageData != nil {
-                            Text("Photo attached")
-                                .font(.caption)
-                                .foregroundColor(.secondary)
-                        }
+                    if let imageData = viewModel.selectedImageData,
+                       let uiImage = UIImage(data: imageData) {
+                        Image(uiImage: uiImage)
+                            .resizable()
+                            .scaledToFit()
+                            .frame(maxHeight: 220)
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+                    } else {
+                        Text("No photo selected")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
                     }
                 }
 
-                if viewModel.isTextEnabled {
-                    Section("Meal Description") {
-                        TextEditor(text: $viewModel.inputText)
-                            .frame(minHeight: 120)
-                    }
+                Section("Meal Description") {
+                    TextEditor(text: $viewModel.inputText)
+                        .frame(minHeight: 120)
                 }
 
-                Section {
-                    Button {
-                        Task {
-                            await viewModel.analyze()
-                        }
-                    } label: {
-                        if viewModel.isAnalyzing {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        } else {
-                            Text("Analyze")
-                                .frame(maxWidth: .infinity)
-                        }
+                Button {
+                    Task {
+                        dismissKeyboard()
+                        await viewModel.analyze()
                     }
-                    .disabled(viewModel.isAnalyzing || (!viewModel.isTextEnabled && !viewModel.isPhotoEnabled))
+                } label: {
+                    if viewModel.isAnalyzing {
+                        ProgressView()
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    } else {
+                        Text("Analyze")
+                            .frame(maxWidth: .infinity, minHeight: 44)
+                    }
                 }
+                .buttonStyle(.borderedProminent)
+                .tint(.blue)
+                .foregroundStyle(.white)
+                .disabled(!viewModel.canAnalyze)
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
+                .listRowSeparator(.hidden)
 
                 if let errorMessage = viewModel.errorMessage {
                     Section {
@@ -96,6 +96,7 @@ struct AddLogSheet: View {
                 }
             }
             .navigationTitle("Add Log")
+            .dismissKeyboardOnTap()
             .toolbar {
                 ToolbarItem(placement: .cancellationAction) {
                     Button("Close") {
@@ -115,7 +116,56 @@ private struct MacroEditField: View {
     @Binding var value: String
 
     var body: some View {
-        TextField(label, text: $value)
-            .keyboardType(.numberPad)
+        LabeledContent(label) {
+            TextField("", text: $value)
+                .keyboardType(.numberPad)
+                .multilineTextAlignment(.trailing)
+        }
     }
+}
+
+private struct KeyboardDismissView: UIViewRepresentable {
+    func makeUIView(context: Context) -> UIView {
+        let view = UIView(frame: .zero)
+        view.backgroundColor = .clear
+        let gesture = UITapGestureRecognizer(
+            target: context.coordinator,
+            action: #selector(Coordinator.handleTap)
+        )
+        gesture.cancelsTouchesInView = false
+        view.addGestureRecognizer(gesture)
+        return view
+    }
+
+    func updateUIView(_ uiView: UIView, context: Context) {}
+
+    func makeCoordinator() -> Coordinator {
+        Coordinator()
+    }
+
+    final class Coordinator: NSObject {
+        @objc func handleTap() {
+            UIApplication.shared.sendAction(
+                #selector(UIResponder.resignFirstResponder),
+                to: nil,
+                from: nil,
+                for: nil
+            )
+        }
+    }
+}
+
+extension View {
+    func dismissKeyboardOnTap() -> some View {
+        background(KeyboardDismissView())
+    }
+}
+
+private func dismissKeyboard() {
+    UIApplication.shared.sendAction(
+        #selector(UIResponder.resignFirstResponder),
+        to: nil,
+        from: nil,
+        for: nil
+    )
 }

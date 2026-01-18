@@ -4,7 +4,12 @@ import Supabase
 enum SupabaseConfig {
     static let client = SupabaseClient(
         supabaseURL: supabaseURL,
-        supabaseKey: supabaseAnonKey
+        supabaseKey: supabaseAnonKey,
+        options: SupabaseClientOptions(
+            auth: .init(
+                emitLocalSessionAsInitialSession: true
+            )
+        )
     )
 
     static let oauthRedirectScheme = infoPlistValue(for: "SUPABASE_OAUTH_CALLBACK_SCHEME")

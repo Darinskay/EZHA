@@ -10,17 +10,19 @@ struct TodayView: View {
         NavigationStack {
             List {
                 Section {
-                    Text("Today's Progress")
-                        .font(.title2.weight(.semibold))
-                    if viewModel.isLoading {
-                        ProgressView()
-                            .frame(maxWidth: .infinity, alignment: .center)
-                    } else {
-                        MacroProgressTable(
-                            targets: viewModel.targets,
-                            eaten: viewModel.totals
-                        )
+                    MacroProgressTable(
+                        targets: viewModel.targets,
+                        eaten: viewModel.totals
+                    )
+                    .redacted(reason: viewModel.isLoading ? .placeholder : [])
+                    .overlay(alignment: .topTrailing) {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .scaleEffect(0.9)
+                                .padding(8)
+                        }
                     }
+                    .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
                     if let errorMessage = viewModel.errorMessage {
                         Text(errorMessage)
                             .font(.footnote)
@@ -28,7 +30,7 @@ struct TodayView: View {
                     }
                 }
 
-                Section {
+                VStack(spacing: 8) {
                     Button {
                         isPresentingAddLog = true
                     } label: {
@@ -60,8 +62,10 @@ struct TodayView: View {
                     .buttonStyle(.bordered)
                     .disabled(viewModel.isLoading)
                 }
+                .listRowBackground(Color.clear)
+                .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
 
-                Section(header: Text("Today")) {
+                Section(header: Text("Today's Progress")) {
                     if viewModel.entries.isEmpty {
                         Text("No items yet.")
                             .foregroundColor(.secondary)
@@ -120,7 +124,9 @@ private struct TodayEntryRow: View {
         VStack(alignment: .leading, spacing: 6) {
             Text(entry.inputText ?? "Meal")
                 .font(.headline)
-            Text("Calories: \(Int(entry.calories))  P \(Int(entry.protein))g  C \(Int(entry.carbs))g  F \(Int(entry.fat))g")
+            Text(
+                "Calories: \(Int(entry.calories))  Protein: \(Int(entry.protein))g  Carbs: \(Int(entry.carbs))g  Fat: \(Int(entry.fat))g"
+            )
                 .font(.subheadline)
                 .foregroundColor(.secondary)
             if entry.imagePath != nil {

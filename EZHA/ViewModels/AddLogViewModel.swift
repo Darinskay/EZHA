@@ -4,7 +4,6 @@ import SwiftUI
 
 @MainActor
 final class AddLogViewModel: ObservableObject {
-    @Published var inputType: LogInputType = .text
     @Published var inputText: String = ""
     @Published var selectedItem: PhotosPickerItem? = nil
     @Published var selectedImageData: Data? = nil
@@ -17,6 +16,8 @@ final class AddLogViewModel: ObservableObject {
     @Published var isSaving: Bool = false
     @Published var errorMessage: String? = nil
 
+    private var pendingEntryId: UUID? = nil
+    private var pendingImagePath: String? = nil
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
     private let profileRepository: ProfileRepository
@@ -34,12 +35,10 @@ final class AddLogViewModel: ObservableObject {
         self.storageService = storageService
     }
 
-    var isPhotoEnabled: Bool {
-        inputType == .photo || inputType == .photoText
-    }
-
-    var isTextEnabled: Bool {
-        inputType == .text || inputType == .photoText
+    var canAnalyze: Bool {
+        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasPhoto = selectedImageData != nil
+        return !isAnalyzing && (hasText || hasPhoto)
     }
 
     func loadSelectedImage() async {
@@ -47,6 +46,8 @@ final class AddLogViewModel: ObservableObject {
         do {
             if let data = try await selectedItem.loadTransferable(type: Data.self) {
                 selectedImageData = data
+                pendingEntryId = nil
+                pendingImagePath = nil
             }
         } catch {
             errorMessage = "Unable to load photo."
@@ -58,7 +59,22 @@ final class AddLogViewModel: ObservableObject {
         errorMessage = nil
         defer { isAnalyzing = false }
         do {
-            let result = try await analysisService.analyze(text: inputText, hasPhoto: selectedImageData != nil)
+            if let imageData = selectedImageData, pendingImagePath == nil {
+                let userId = try await SupabaseConfig.client.auth.session.user.id
+                let entryId = pendingEntryId ?? UUID()
+                pendingEntryId = entryId
+                pendingImagePath = try await storageService.uploadFoodImage(
+                    data: imageData,
+                    userId: userId,
+                    entryId: entryId
+                )
+            }
+
+            let result = try await analysisService.analyze(
+                text: inputText,
+                imagePath: pendingImagePath,
+                inputType: analysisInputType
+            )
             estimate = result
             caloriesText = String(result.calories)
             proteinText = String(result.protein)
@@ -84,11 +100,11 @@ final class AddLogViewModel: ObservableObject {
 
         do {
             let userId = try await SupabaseConfig.client.auth.session.user.id
-            let entryId = UUID()
+            let entryId = pendingEntryId ?? UUID()
             let activeDate = try await resolvedActiveDate(for: userId)
-            var imagePath: String?
+            var imagePath: String? = pendingImagePath
 
-            if let imageData = selectedImageData {
+            if imagePath == nil, let imageData = selectedImageData {
                 imagePath = try await storageService.uploadFoodImage(
                     data: imageData,
                     userId: userId,
@@ -100,7 +116,7 @@ final class AddLogViewModel: ObservableObject {
                 id: entryId,
                 userId: userId,
                 date: activeDate,
-                inputType: inputType.databaseValue,
+                inputType: resolvedInputType.databaseValue,
                 inputText: inputText.isEmpty ? nil : inputText,
                 imagePath: imagePath,
                 calories: Double(calories),
@@ -122,7 +138,6 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func reset() {
-        inputType = .text
         inputText = ""
         selectedItem = nil
         selectedImageData = nil
@@ -131,6 +146,8 @@ final class AddLogViewModel: ObservableObject {
         proteinText = ""
         carbsText = ""
         fatText = ""
+        pendingEntryId = nil
+        pendingImagePath = nil
         isAnalyzing = false
         isSaving = false
         errorMessage = nil
@@ -154,4 +171,23 @@ final class AddLogViewModel: ObservableObject {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
+
+    private var analysisInputType: String {
+        resolvedInputType.databaseValue
+    }
+
+    private var resolvedInputType: LogInputType {
+        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasPhoto = selectedImageData != nil || pendingImagePath != nil
+        switch (hasPhoto, hasText) {
+        case (true, true):
+            return .photoText
+        case (true, false):
+            return .photo
+        case (false, true):
+            return .text
+        case (false, false):
+            return .text
+        }
+    }
 }

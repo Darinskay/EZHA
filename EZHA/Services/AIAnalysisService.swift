@@ -8,29 +8,33 @@ final class AIAnalysisService {
         self.supabase = supabase
     }
 
-    func analyze(text: String, hasPhoto: Bool) async throws -> MacroEstimate {
+    func analyze(text: String, imagePath: String?, inputType: String) async throws -> MacroEstimate {
         let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else {
+        if trimmed.isEmpty && imagePath == nil {
             throw AnalysisError.emptyInput
         }
 
-        let request = AIAnalysisRequest(text: trimmed, inputType: hasPhoto ? "photo+text" : "text")
+        let request = AIAnalysisRequest(
+            text: trimmed.isEmpty ? nil : trimmed,
+            imagePath: imagePath,
+            inputType: inputType
+        )
         var session = try await supabase.auth.session
         if session.isExpired {
             session = try await supabase.auth.refreshSession()
         }
-#if DEBUG
-        await debugValidateAccessToken(session.accessToken)
-#endif
         let payload: AIAnalysisResponse
         do {
+            #if DEBUG
+            logJwtClaims(session.accessToken)
+            #endif
             payload = try await requestEstimate(request: request, accessToken: session.accessToken)
         } catch let error as AnalysisError {
             if case .unauthorized = error {
-                #if DEBUG
-                debugPrintTokenDetails(session.accessToken)
-                #endif
                 session = try await supabase.auth.refreshSession()
+                #if DEBUG
+                logJwtClaims(session.accessToken)
+                #endif
                 payload = try await requestEstimate(request: request, accessToken: session.accessToken)
             } else {
                 throw error
@@ -82,6 +86,13 @@ final class AIAnalysisService {
         }
 
         let payload = try JSONDecoder().decode(AIAnalysisResponse.self, from: data)
+#if DEBUG
+        if let responseText = String(data: data, encoding: .utf8) {
+            print("AI estimate status: \(httpResponse.statusCode), body: \(responseText)")
+        } else {
+            print("AI estimate status: \(httpResponse.statusCode), body: [non-utf8]")
+        }
+#endif
         if !(200..<300).contains(httpResponse.statusCode) {
             if let message = payload.error {
                 throw AnalysisError.remote(message)
@@ -100,8 +111,56 @@ final class AIAnalysisService {
     }
 }
 
+#if DEBUG
+private func logJwtClaims(_ token: String) {
+    let parts = token.split(separator: ".")
+    guard parts.count >= 2 else {
+        print("AI estimate JWT claims: [invalid token format]")
+        return
+    }
+
+    let header = String(parts[0])
+    let payload = String(parts[1])
+    let headerInfo = decodeJwtHeader(header)
+    guard let data = decodeBase64Url(payload),
+          let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        print("AI estimate JWT claims: [unable to decode]")
+        return
+    }
+
+    let iss = jsonObject["iss"] ?? "n/a"
+    let ref = jsonObject["ref"] ?? "n/a"
+    let aud = jsonObject["aud"] ?? "n/a"
+    let sub = jsonObject["sub"] ?? "n/a"
+    let iat = jsonObject["iat"] ?? "n/a"
+    let exp = jsonObject["exp"] ?? "n/a"
+    print("AI estimate JWT claims: iss=\(iss), ref=\(ref), aud=\(aud), sub=\(sub), iat=\(iat), exp=\(exp), \(headerInfo)")
+}
+
+private func decodeJwtHeader(_ header: String) -> String {
+    guard let data = decodeBase64Url(header),
+          let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
+        return "header=[unavailable]"
+    }
+    let alg = jsonObject["alg"] ?? "n/a"
+    let kid = jsonObject["kid"] ?? "n/a"
+    return "header: alg=\(alg), kid=\(kid)"
+}
+
+private func decodeBase64Url(_ value: String) -> Data? {
+    var base64 = value.replacingOccurrences(of: "-", with: "+")
+        .replacingOccurrences(of: "_", with: "/")
+    let padding = 4 - base64.count % 4
+    if padding < 4 {
+        base64 += String(repeating: "=", count: padding)
+    }
+    return Data(base64Encoded: base64)
+}
+#endif
+
 private struct AIAnalysisRequest: Encodable {
-    let text: String
+    let text: String?
+    let imagePath: String?
     let inputType: String
 }
 
@@ -125,7 +184,7 @@ enum AnalysisError: LocalizedError {
     var errorDescription: String? {
         switch self {
         case .emptyInput:
-            return "Please enter a food description."
+            return "Please enter a food description or attach a photo."
         case .remote(let message):
             return message
         case .invalidResponse:
@@ -138,49 +197,3 @@ enum AnalysisError: LocalizedError {
         }
     }
 }
-
-#if DEBUG
-private func debugPrintTokenDetails(_ token: String) {
-    guard let payload = decodeJWTPayload(token) else {
-        print("JWT debug: unable to decode token payload.")
-        return
-    }
-    let iss = payload["iss"] as? String ?? "unknown"
-    let ref = payload["ref"] as? String ?? "unknown"
-    let aud = payload["aud"] as? String ?? "unknown"
-    let role = payload["role"] as? String ?? "unknown"
-    let sub = payload["sub"] as? String ?? "unknown"
-    let exp = payload["exp"] as? Double ?? 0
-    print("JWT debug: iss=\(iss), ref=\(ref), aud=\(aud), role=\(role), sub=\(sub), exp=\(exp)")
-}
-
-private func decodeJWTPayload(_ token: String) -> [String: Any]? {
-    let parts = token.split(separator: ".")
-    guard parts.count >= 2 else { return nil }
-    var base64 = String(parts[1])
-    let padding = 4 - (base64.count % 4)
-    if padding < 4 {
-        base64.append(String(repeating: "=", count: padding))
-    }
-    base64 = base64.replacingOccurrences(of: "-", with: "+")
-        .replacingOccurrences(of: "_", with: "/")
-    guard let data = Data(base64Encoded: base64) else { return nil }
-    return (try? JSONSerialization.jsonObject(with: data)) as? [String: Any]
-}
-
-@MainActor
-private func debugValidateAccessToken(_ token: String) async {
-    let url = SupabaseConfig.url.appendingPathComponent("auth/v1/user")
-    var request = URLRequest(url: url)
-    request.httpMethod = "GET"
-    request.setValue("Bearer \(token)", forHTTPHeaderField: "Authorization")
-    request.setValue(SupabaseConfig.anonKey, forHTTPHeaderField: "apikey")
-    do {
-        let (_, response) = try await URLSession.shared.data(for: request)
-        let status = (response as? HTTPURLResponse)?.statusCode ?? -1
-        print("JWT debug: auth/v1/user status=\(status)")
-    } catch {
-        print("JWT debug: auth/v1/user failed: \(error.localizedDescription)")
-    }
-}
-#endif

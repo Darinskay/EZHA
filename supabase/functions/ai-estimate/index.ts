@@ -18,8 +18,9 @@ serve(async (req) => {
   }
 
   const text = typeof payload.text === "string" ? payload.text.trim() : "";
-  if (!text) {
-    return jsonError("Missing required field: text");
+  const imagePath = typeof payload.imagePath === "string" ? payload.imagePath.trim() : "";
+  if (!text && !imagePath) {
+    return jsonError("Missing required field: text or imagePath");
   }
 
   const openAiKey = Deno.env.get("OPENAI_API_KEY");
@@ -56,8 +57,23 @@ serve(async (req) => {
     "gpt-4o-mini";
   const baseUrl = Deno.env.get("OPENAI_BASE_URL") ?? "https://api.openai.com/v1";
 
-  const parsedWeight = extractWeight(text);
-  const prompt = buildPrompt(text, parsedWeight);
+  const parsedWeight = text ? extractWeight(text) : null;
+  const prompt = buildPrompt(text, parsedWeight, payload.inputType ?? "text", imagePath);
+  let imageUrl: string | null = null;
+  if (imagePath) {
+    try {
+      imageUrl = await createSignedImageUrl({
+        supabaseUrl,
+        supabaseAnonKey,
+        accessToken: tokenMatch[1],
+        imagePath,
+        bucket: Deno.env.get("FOOD_IMAGES_BUCKET") ?? "food-images",
+      });
+    } catch {
+      console.log("signed url error for imagePath:", imagePath);
+      return jsonError("Unable to create signed URL for image.");
+    }
+  }
 
   const response = await fetch(`${baseUrl}/chat/completions`, {
     method: "POST",
@@ -78,14 +94,20 @@ serve(async (req) => {
         },
         {
           role: "user",
-          content: prompt,
+          content: imageUrl ? [
+            { type: "text", text: prompt },
+            { type: "image_url", image_url: { url: imageUrl } },
+          ] : prompt,
         },
       ],
     }),
   });
 
   if (!response.ok) {
-    return jsonError(`OpenAI request failed with status ${response.status}.`);
+    const errorText = await response.text();
+    return jsonError(
+      `OpenAI request failed with status ${response.status}: ${errorText || "unknown error"}.`,
+    );
   }
 
   let content = "";
@@ -142,7 +164,8 @@ serve(async (req) => {
 });
 
 type RequestPayload = {
-  text: string;
+  text?: string;
+  imagePath?: string;
   inputType?: string;
   model?: string;
 };
@@ -173,7 +196,7 @@ const requiredFields: Array<keyof AIResult> = [
   "notes",
 ];
 
-const allowedSources = ["food_photo", "label_photo", "unknown"];
+const allowedSources = ["food_photo", "label_photo", "text", "unknown"];
 
 function jsonError(message: string) {
   return new Response(JSON.stringify({ error: message }), {
@@ -222,19 +245,79 @@ function normalizeToGrams(value: number, unit: string): number | undefined {
   }
 }
 
-function buildPrompt(text: string, parsedWeight: ParsedWeight | null): string {
+function buildPrompt(
+  text: string,
+  parsedWeight: ParsedWeight | null,
+  inputType: string,
+  imagePath: string,
+): string {
   const weightLine = parsedWeight
     ? `Parsed weight: ${parsedWeight.value} ${parsedWeight.unit}` +
       (parsedWeight.grams ? ` (~${Math.round(parsedWeight.grams)} g)` : "")
     : "Parsed weight: none";
 
   return [
-    "Estimate calories and macros for the following food description.",
+    "Estimate calories and macros from the input.",
+    "If the input includes a nutrition label, prioritize the label values.",
+    "If the input is a food photo, estimate a typical portion.",
     "Use the parsed weight if present; otherwise, assume a typical portion.",
     "Return JSON with fields in this exact order:",
     "calories, protein, carbs, fat, confidence, source, notes.",
-    "Use source = \"unknown\" for text-only input.",
-    `User text: ${text}`,
+    "Set source to one of: food_photo, label_photo, text, unknown.",
+    `Input type: ${inputType}`,
+    `User text: ${text || "[none]"}`,
+    `Image path: ${imagePath || "[none]"}`,
     weightLine,
   ].join("\n");
+}
+
+async function createSignedImageUrl({
+  supabaseUrl,
+  supabaseAnonKey,
+  accessToken,
+  imagePath,
+  bucket,
+}: {
+  supabaseUrl: string;
+  supabaseAnonKey: string;
+  accessToken: string;
+  imagePath: string;
+  bucket: string;
+}): Promise<string> {
+  const response = await fetch(
+    `${supabaseUrl}/storage/v1/object/sign/${bucket}/${imagePath}`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${accessToken}`,
+        apikey: supabaseAnonKey,
+      },
+      body: JSON.stringify({ expiresIn: 60 }),
+    },
+  );
+
+  if (!response.ok) {
+    throw new Error("Unable to create signed URL for image.");
+  }
+
+  const data = await response.json();
+  const signedUrl = data.signedURL ?? data.signedUrl;
+  if (!signedUrl) {
+    throw new Error("Signed URL response missing.");
+  }
+
+  if (signedUrl.startsWith("http")) {
+    return signedUrl;
+  }
+
+  if (signedUrl.startsWith("/object/")) {
+    return `${supabaseUrl}/storage/v1${signedUrl}`;
+  }
+
+  if (signedUrl.startsWith("/storage/v1")) {
+    return `${supabaseUrl}${signedUrl}`;
+  }
+
+  return `${supabaseUrl}/storage/v1${signedUrl.startsWith("/") ? "" : "/"}${signedUrl}`;
 }
