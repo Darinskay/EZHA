@@ -27,7 +27,7 @@
 			<string>Supabase OAuth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>[PLACEHOLDER] com.example.ezha</string>
+				<string>daryna.Ezha</string>
 			</array>
 		</dict>
 	</array>

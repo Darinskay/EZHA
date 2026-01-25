@@ -12,7 +12,7 @@ struct AddLogSheet: View {
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = AddLogViewModel()
-    @State private var isFoodPickerPresented: Bool = false
+    @State private var isSavedFoodsPresented: Bool = false
     @State private var saveToLibrary: Bool = true
     @State private var libraryName: String = ""
     @State private var libraryNameEdited: Bool = false
@@ -35,8 +35,13 @@ struct AddLogSheet: View {
                         if mode == .library {
                             libraryNameCard
                         }
+                        entryModeCard
                         photoCard
-                        textCard
+                        if viewModel.entryMode == .list {
+                            listCard
+                        } else {
+                            descriptionCard
+                        }
                         if mode == .log {
                             savedFoodCard
                         }
@@ -87,7 +92,15 @@ struct AddLogSheet: View {
                 guard !libraryNameEdited else { return }
                 libraryName = viewModel.suggestedFoodName()
             }
-            .onChange(of: viewModel.inputText) { _, _ in
+            .onChange(of: viewModel.descriptionText) { _, _ in
+                guard !libraryNameEdited else { return }
+                libraryName = viewModel.suggestedFoodName()
+            }
+            .onChange(of: viewModel.items) { _, _ in
+                guard !libraryNameEdited else { return }
+                libraryName = viewModel.suggestedFoodName()
+            }
+            .onChange(of: viewModel.entryMode) { _, _ in
                 guard !libraryNameEdited else { return }
                 libraryName = viewModel.suggestedFoodName()
             }
@@ -95,10 +108,8 @@ struct AddLogSheet: View {
                 guard isOn, !libraryNameEdited else { return }
                 libraryName = viewModel.suggestedFoodName()
             }
-            .sheet(isPresented: $isFoodPickerPresented) {
-                FoodLibraryPickerView { selection in
-                    viewModel.applySavedFood(selection)
-                }
+            .sheet(isPresented: $isSavedFoodsPresented) {
+                SavedFoodQuickAddSheet(viewModel: viewModel)
             }
             .confirmationDialog(
                 "Food already exists",
@@ -133,6 +144,19 @@ struct AddLogSheet: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(.horizontal, 16)
         .padding(.top, 6)
+    }
+
+    private var entryModeCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            Text("Input style")
+                .font(.headline)
+            Picker("Input style", selection: $viewModel.entryMode) {
+                Text("List").tag(LogEntryMode.list)
+                Text("Description").tag(LogEntryMode.description)
+            }
+            .pickerStyle(.segmented)
+        }
+        .modifier(CardModifier())
     }
 
     private var photoCard: some View {
@@ -199,13 +223,72 @@ struct AddLogSheet: View {
         .modifier(CardModifier())
     }
 
-    private var textCard: some View {
+    private var listCard: some View {
+        VStack(alignment: .leading, spacing: 12) {
+            HStack {
+                Text("Food list")
+                    .font(.headline)
+                Spacer()
+                Button("Add item") {
+                    viewModel.addItemRow()
+                }
+                .font(.subheadline)
+            }
+
+            VStack(spacing: 10) {
+                ForEach($viewModel.items) { $item in
+                    HStack(spacing: 10) {
+                        TextField("Food", text: $item.name)
+                            .textInputAutocapitalization(.words)
+                            .padding(12)
+                            .background(Color(.secondarySystemBackground))
+                            .clipShape(RoundedRectangle(cornerRadius: 12))
+
+                        HStack(spacing: 6) {
+                            TextField("g", text: $item.gramsText)
+                                .keyboardType(.decimalPad)
+                                .multilineTextAlignment(.trailing)
+                                .padding(12)
+                                .background(Color(.secondarySystemBackground))
+                                .clipShape(RoundedRectangle(cornerRadius: 12))
+                            Text("g")
+                                .font(.subheadline)
+                                .foregroundColor(.secondary)
+                        }
+
+                        if viewModel.items.count > 1 {
+                            Button {
+                                viewModel.removeItemRow(id: item.id)
+                            } label: {
+                                Image(systemName: "minus.circle.fill")
+                                    .foregroundColor(.secondary)
+                            }
+                            .buttonStyle(.plain)
+                        }
+                    }
+                }
+            }
+
+            HStack(spacing: 12) {
+                Label("Grams required for each item", systemImage: "scalemass")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+                Spacer()
+                Text("List default")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+        }
+        .modifier(CardModifier())
+    }
+
+    private var descriptionCard: some View {
         VStack(alignment: .leading, spacing: 10) {
             Text("Meal description")
                 .font(.headline)
 
             PlaceholderTextEditor(
-                text: $viewModel.inputText,
+                text: $viewModel.descriptionText,
                 placeholder: "Ex: Chicken salad with avocado, olive oil dressing"
             )
             .frame(minHeight: 56, maxHeight: 72)
@@ -262,28 +345,18 @@ struct AddLogSheet: View {
                     .font(.headline)
                 Spacer()
                 Button("Choose") {
-                    isFoodPickerPresented = true
+                    isSavedFoodsPresented = true
                 }
                 .font(.subheadline)
             }
 
-            Text("Pick a saved food to prefill macros without running AI.")
+            Text("Choose up to \(viewModel.maxSavedFoodsAllowed) saved foods to add quickly.")
                 .font(.caption)
                 .foregroundColor(.secondary)
 
-            if let estimate = viewModel.estimate,
-               !viewModel.inputText.isEmpty,
-               !viewModel.isAnalyzing {
-                HStack {
-                    Text(viewModel.inputText)
-                        .font(.subheadline)
-                        .fontWeight(.semibold)
-                    Spacer()
-                    Text("\(estimate.calories) cal")
-                        .font(.caption)
-                        .foregroundColor(.secondary)
-                }
-            }
+            Text("\(viewModel.selectedSavedFoodCount)/\(viewModel.maxSavedFoodsAllowed) selected")
+                .font(.subheadline)
+                .fontWeight(.semibold)
         }
         .modifier(CardModifier())
     }
@@ -461,8 +534,8 @@ struct AddLogSheet: View {
     }
 
     private var headerTitle: String {
-        let rawName = viewModel.estimate?.foodName?.trimmingCharacters(in: .whitespacesAndNewlines)
-        let name = (rawName?.isEmpty == false) ? rawName! : "meal"
+        let suggested = viewModel.suggestedFoodName()
+        let name = suggested == "Meal" ? "meal" : suggested
         switch mode {
         case .log:
             return "Add your \(name)"
@@ -474,7 +547,7 @@ struct AddLogSheet: View {
     private var headerSubtitle: String {
         switch mode {
         case .log:
-            return "Snap a photo or describe what you ate. Edit the AI estimate before saving."
+            return "List foods with grams or switch to a description. Edit the AI estimate before saving."
         case .library:
             return "Scan a label or describe the food. Edit the AI estimate before saving."
         }

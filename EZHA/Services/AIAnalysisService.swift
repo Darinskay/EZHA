@@ -1,3 +1,4 @@
+import Auth
 import Foundation
 import Supabase
 
@@ -9,25 +10,26 @@ final class AIAnalysisService {
     }
 
     func analyzeStream(
-        text: String,
+        text: String?,
+        items: [AIItemInput]?,
         imagePath: String?,
         inputType: String
     ) async throws -> AsyncThrowingStream<AIStreamEvent, Error> {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty && imagePath == nil {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let hasText = !trimmed.isEmpty
+        let hasItems = items?.isEmpty == false
+        if !hasText && imagePath == nil && !hasItems {
             throw AnalysisError.emptyInput
         }
 
         let request = AIAnalysisRequest(
-            text: trimmed.isEmpty ? nil : trimmed,
+            text: hasText ? trimmed : nil,
+            items: hasItems ? items : nil,
             imagePath: imagePath,
             inputType: inputType,
             stream: true
         )
-        var session = try await supabase.auth.session
-        if session.isExpired {
-            session = try await supabase.auth.refreshSession()
-        }
+        var session = try await freshSession()
 
         do {
             #if DEBUG
@@ -36,7 +38,7 @@ final class AIAnalysisService {
             return try await requestEstimateStream(request: request, accessToken: session.accessToken)
         } catch let error as AnalysisError {
             if case .unauthorized = error {
-                session = try await supabase.auth.refreshSession()
+                session = try await refreshSessionOrSignOut()
                 #if DEBUG
                 logJwtClaims(session.accessToken)
                 #endif
@@ -46,22 +48,27 @@ final class AIAnalysisService {
         }
     }
 
-    func analyze(text: String, imagePath: String?, inputType: String) async throws -> MacroEstimate {
-        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
-        if trimmed.isEmpty && imagePath == nil {
+    func analyze(
+        text: String?,
+        items: [AIItemInput]?,
+        imagePath: String?,
+        inputType: String
+    ) async throws -> MacroEstimate {
+        let trimmed = text?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        let hasText = !trimmed.isEmpty
+        let hasItems = items?.isEmpty == false
+        if !hasText && imagePath == nil && !hasItems {
             throw AnalysisError.emptyInput
         }
 
         let request = AIAnalysisRequest(
-            text: trimmed.isEmpty ? nil : trimmed,
+            text: hasText ? trimmed : nil,
+            items: hasItems ? items : nil,
             imagePath: imagePath,
             inputType: inputType,
             stream: nil
         )
-        var session = try await supabase.auth.session
-        if session.isExpired {
-            session = try await supabase.auth.refreshSession()
-        }
+        var session = try await freshSession()
         let payload: AIAnalysisResponse
         do {
             #if DEBUG
@@ -70,7 +77,7 @@ final class AIAnalysisService {
             payload = try await requestEstimate(request: request, accessToken: session.accessToken)
         } catch let error as AnalysisError {
             if case .unauthorized = error {
-                session = try await supabase.auth.refreshSession()
+                session = try await refreshSessionOrSignOut()
                 #if DEBUG
                 logJwtClaims(session.accessToken)
                 #endif
@@ -84,25 +91,11 @@ final class AIAnalysisService {
             throw AnalysisError.remote(error)
         }
 
-        guard let calories = payload.calories,
-              let protein = payload.protein,
-              let carbs = payload.carbs,
-              let fat = payload.fat,
-              let source = payload.source,
-              let notes = payload.notes else {
+        guard let estimate = decodeEstimate(from: payload) else {
             throw AnalysisError.invalidResponse
         }
 
-        return MacroEstimate(
-            calories: calories,
-            protein: protein,
-            carbs: carbs,
-            fat: fat,
-            confidence: payload.confidence,
-            source: source,
-            foodName: payload.foodName,
-            notes: notes
-        )
+        return estimate
     }
 
     private func requestEstimate(
@@ -247,24 +240,39 @@ final class AIAnalysisService {
     }
 
     private func decodeEstimate(from payload: AIAnalysisResponse) -> MacroEstimate? {
-        guard let calories = payload.calories,
-              let protein = payload.protein,
-              let carbs = payload.carbs,
-              let fat = payload.fat,
-              let source = payload.source,
+        guard let source = payload.source,
               let notes = payload.notes else {
             return nil
         }
 
+        let totals = payload.totals ?? payload.legacyTotals
+        guard let totals else {
+            return nil
+        }
+
+        let items = payload.items?.map { item in
+            MacroItemEstimate(
+                name: item.name,
+                grams: item.grams,
+                calories: item.calories,
+                protein: item.protein,
+                carbs: item.carbs,
+                fat: item.fat,
+                confidence: item.confidence,
+                notes: item.notes
+            )
+        } ?? []
+
         return MacroEstimate(
-            calories: calories,
-            protein: protein,
-            carbs: carbs,
-            fat: fat,
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat,
             confidence: payload.confidence,
             source: source,
             foodName: payload.foodName,
-            notes: notes
+            notes: notes,
+            items: items
         )
     }
 
@@ -292,13 +300,46 @@ final class AIAnalysisService {
         urlRequest.httpBody = try JSONEncoder().encode(request)
         return urlRequest
     }
+
+    private func freshSession() async throws -> Session {
+        do {
+            // Use centralized session management with proactive refresh
+            return try await SupabaseConfig.currentSession()
+        } catch let error as AuthError {
+            // Only sign out for actual auth errors (invalid session, expired refresh token, etc.)
+            try? await supabase.auth.signOut()
+            throw AnalysisError.unauthorized(error.localizedDescription)
+        } catch let error as URLError {
+            // Network errors should not sign out the user
+            throw AnalysisError.network(error.localizedDescription)
+        } catch {
+            // For other transient failures, don't sign out
+            throw AnalysisError.remote("Unable to verify session: \(error.localizedDescription)")
+        }
+    }
+
+    private func refreshSessionOrSignOut() async throws -> Session {
+        do {
+            return try await supabase.auth.refreshSession()
+        } catch let error as AuthError {
+            // Only sign out for actual auth errors
+            try? await supabase.auth.signOut()
+            throw AnalysisError.unauthorized(error.localizedDescription)
+        } catch let error as URLError {
+            // Network errors should not sign out the user
+            throw AnalysisError.network(error.localizedDescription)
+        } catch {
+            // For other transient failures, don't sign out
+            throw AnalysisError.remote("Unable to refresh session: \(error.localizedDescription)")
+        }
+    }
+
 }
 
 #if DEBUG
 private func logJwtClaims(_ token: String) {
     let parts = token.split(separator: ".")
     guard parts.count >= 2 else {
-        print("AI estimate JWT claims: [invalid token format]")
         return
     }
 
@@ -307,7 +348,6 @@ private func logJwtClaims(_ token: String) {
     let headerInfo = decodeJwtHeader(header)
     guard let data = decodeBase64Url(payload),
           let jsonObject = try? JSONSerialization.jsonObject(with: data) as? [String: Any] else {
-        print("AI estimate JWT claims: [unable to decode]")
         return
     }
 
@@ -317,7 +357,7 @@ private func logJwtClaims(_ token: String) {
     let sub = jsonObject["sub"] ?? "n/a"
     let iat = jsonObject["iat"] ?? "n/a"
     let exp = jsonObject["exp"] ?? "n/a"
-    print("AI estimate JWT claims: iss=\(iss), ref=\(ref), aud=\(aud), sub=\(sub), iat=\(iat), exp=\(exp), \(headerInfo)")
+    print("JWT debug: \(headerInfo) iss=\(iss) ref=\(ref) aud=\(aud) sub=\(sub) iat=\(iat) exp=\(exp)")
 }
 
 private func decodeJwtHeader(_ header: String) -> String {
@@ -343,9 +383,33 @@ private func decodeBase64Url(_ value: String) -> Data? {
 
 private struct AIAnalysisRequest: Encodable {
     let text: String?
+    let items: [AIItemInput]?
     let imagePath: String?
     let inputType: String
     let stream: Bool?
+}
+
+struct AIItemInput: Encodable, Hashable {
+    let name: String
+    let grams: Double
+}
+
+private struct AITotalsPayload: Decodable {
+    let calories: Double
+    let protein: Double
+    let carbs: Double
+    let fat: Double
+}
+
+private struct AIItemPayload: Decodable {
+    let name: String
+    let grams: Double
+    let calories: Double
+    let protein: Double
+    let carbs: Double
+    let fat: Double
+    let confidence: Double?
+    let notes: String?
 }
 
 private struct AIAnalysisResponse: Decodable {
@@ -357,6 +421,8 @@ private struct AIAnalysisResponse: Decodable {
     let source: String?
     let foodName: String?
     let notes: String?
+    let items: [AIItemPayload]?
+    let totals: AITotalsPayload?
     let error: String?
 
     enum CodingKeys: String, CodingKey {
@@ -368,13 +434,26 @@ private struct AIAnalysisResponse: Decodable {
         case source
         case foodName = "food_name"
         case notes
+        case items
+        case totals
         case error
+    }
+
+    var legacyTotals: AITotalsPayload? {
+        guard let calories,
+              let protein,
+              let carbs,
+              let fat else {
+            return nil
+        }
+        return AITotalsPayload(calories: calories, protein: protein, carbs: carbs, fat: fat)
     }
 }
 
 enum AnalysisError: LocalizedError {
     case emptyInput
     case remote(String)
+    case network(String)
     case invalidResponse
     case unauthorized(String?)
 
@@ -384,6 +463,8 @@ enum AnalysisError: LocalizedError {
             return "Please enter a food description or attach a photo."
         case .remote(let message):
             return message
+        case .network(let details):
+            return "Network error: \(details). Please check your connection and try again."
         case .invalidResponse:
             return "Analysis returned an invalid response."
         case .unauthorized(let details):

@@ -8,6 +8,15 @@ struct EZHAApp: App {
         WindowGroup {
             RootView()
                 .environmentObject(sessionManager)
+                .onOpenURL { url in
+                    Task {
+                        do {
+                            try await SupabaseConfig.client.auth.session(from: url)
+                        } catch {
+                            sessionManager.errorMessage = error.localizedDescription
+                        }
+                    }
+                }
         }
     }
 }

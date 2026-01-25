@@ -5,17 +5,23 @@ final class HistoryViewModel: ObservableObject {
     @Published private(set) var dailySummaries: [DailySummary] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
+    @Published private(set) var entriesByDate: [String: [FoodEntry]] = [:]
+    @Published private(set) var loadingDates: Set<String> = []
+    @Published private(set) var entryErrors: [String: String] = [:]
 
     let daysToShow: Int = 60
     private let summaryRepository: DailySummaryRepository
     private let profileRepository: ProfileRepository
+    private let entryRepository: FoodEntryRepository
 
     init(
         summaryRepository: DailySummaryRepository = DailySummaryRepository(),
-        profileRepository: ProfileRepository = ProfileRepository()
+        profileRepository: ProfileRepository = ProfileRepository(),
+        entryRepository: FoodEntryRepository = FoodEntryRepository()
     ) {
         self.summaryRepository = summaryRepository
         self.profileRepository = profileRepository
+        self.entryRepository = entryRepository
     }
 
     func loadHistory() async {
@@ -24,6 +30,9 @@ final class HistoryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
+            entriesByDate = [:]
+            loadingDates = []
+            entryErrors = [:]
             guard let profile = try await profileRepository.fetchProfile() else {
                 dailySummaries = []
                 return
@@ -47,6 +56,32 @@ final class HistoryViewModel: ObservableObject {
             )
         } catch {
             errorMessage = "Unable to load history."
+        }
+    }
+
+    func loadEntries(for dateString: String) async {
+        if entriesByDate[dateString] != nil || loadingDates.contains(dateString) {
+            return
+        }
+        loadingDates.insert(dateString)
+        entryErrors[dateString] = nil
+        defer { loadingDates.remove(dateString) }
+
+        guard let date = Self.dateFromString(dateString) else {
+            entryErrors[dateString] = "Unable to read this date."
+            entriesByDate[dateString] = []
+            return
+        }
+
+        do {
+            let entries = try await entryRepository.fetchEntries(
+                for: date,
+                timeZone: TimeZone.current
+            )
+            entriesByDate[dateString] = entries
+        } catch {
+            entryErrors[dateString] = "Unable to load entries."
+            entriesByDate[dateString] = []
         }
     }
 
@@ -93,7 +128,7 @@ final class HistoryViewModel: ObservableObject {
         return results.reversed()
     }
 
-    private static func dateFromString(_ value: String) -> Date? {
+    static func dateFromString(_ value: String) -> Date? {
         dateFormatter.date(from: value)
     }
 

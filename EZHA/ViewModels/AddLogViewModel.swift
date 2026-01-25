@@ -2,9 +2,23 @@ import Foundation
 import PhotosUI
 import SwiftUI
 
+struct FoodItemDraft: Identifiable, Hashable {
+    var id: UUID = UUID()
+    var name: String = ""
+    var gramsText: String = ""
+}
+
+struct SavedFoodQuickState: Hashable {
+    var isActive: Bool = false
+    var gramsText: String = ""
+    var errorMessage: String? = nil
+}
+
 @MainActor
 final class AddLogViewModel: ObservableObject {
-    @Published var inputText: String = ""
+    @Published var entryMode: LogEntryMode = .list
+    @Published var descriptionText: String = ""
+    @Published var items: [FoodItemDraft] = [FoodItemDraft()]
     @Published var selectedItem: PhotosPickerItem? = nil
     @Published var selectedImageData: Data? = nil
     @Published var estimate: MacroEstimate? = nil
@@ -18,10 +32,16 @@ final class AddLogViewModel: ObservableObject {
     @Published var analysisStage: AnalysisStage = .idle
     @Published var streamPreview: String = ""
     @Published var isLabelPhoto: Bool = false
+    @Published var savedFoods: [SavedFood] = []
+    @Published var savedFoodStates: [UUID: SavedFoodQuickState] = [:]
+    @Published var isSavedFoodsLoading: Bool = false
+    @Published var savedFoodsError: String? = nil
+    @Published var savedFoodsSelectionError: String? = nil
 
     private var pendingEntryId: UUID? = nil
     private var pendingImagePath: String? = nil
     private var streamBuffer: String = ""
+    private var savedFoodsEstimateActive: Bool = false
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
     private let profileRepository: ProfileRepository
@@ -43,8 +63,8 @@ final class AddLogViewModel: ObservableObject {
     }
 
     var canAnalyze: Bool {
-        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
-        let hasPhoto = selectedImageData != nil
+        let hasText = hasTextInput
+        let hasPhoto = selectedImageData != nil || pendingImagePath != nil
         return !isAnalyzing && (hasText || hasPhoto)
     }
 
@@ -75,9 +95,18 @@ final class AddLogViewModel: ObservableObject {
         fatText = ""
         defer { isAnalyzing = false }
         do {
+            let itemInputs = validatedItemInputs(
+                requireAtLeastOne: entryMode == .list && selectedImageData == nil && pendingImagePath == nil
+            )
+            guard let itemInputs else {
+                analysisStage = .idle
+                return
+            }
+            let description = entryMode == .description ? descriptionText : ""
+
             if let imageData = selectedImageData, pendingImagePath == nil {
                 analysisStage = .uploading
-                let userId = try await SupabaseConfig.client.auth.session.user.id
+                let userId = try await SupabaseConfig.currentUserId()
                 let entryId = pendingEntryId ?? UUID()
                 pendingEntryId = entryId
                 pendingImagePath = try await storageService.uploadFoodImage(
@@ -89,7 +118,8 @@ final class AddLogViewModel: ObservableObject {
 
             analysisStage = .requestingModel
             let stream = try await analysisService.analyzeStream(
-                text: inputText,
+                text: description,
+                items: itemInputs.isEmpty ? nil : itemInputs,
                 imagePath: pendingImagePath,
                 inputType: analysisInputType
             )
@@ -116,7 +146,8 @@ final class AddLogViewModel: ObservableObject {
 
             if estimate == nil {
                 let fallback = try await analysisService.analyze(
-                    text: inputText,
+                    text: description,
+                    items: itemInputs.isEmpty ? nil : itemInputs,
                     imagePath: pendingImagePath,
                     inputType: analysisInputType
                 )
@@ -148,7 +179,7 @@ final class AddLogViewModel: ObservableObject {
         defer { isSaving = false }
 
         do {
-            let userId = try await SupabaseConfig.client.auth.session.user.id
+            let userId = try await SupabaseConfig.currentUserId()
             let entryId = pendingEntryId ?? UUID()
             let activeDate = try await resolvedActiveDate(for: userId)
             var imagePath: String? = pendingImagePath
@@ -161,12 +192,26 @@ final class AddLogViewModel: ObservableObject {
                 )
             }
 
+            let itemInputs = validatedItemInputs(requireAtLeastOne: entryMode == .list && imagePath == nil)
+            guard let itemInputs else { return false }
+
+            let entryItems = buildEntryItems(
+                entryId: entryId,
+                userId: userId,
+                itemInputs: itemInputs,
+                estimate: estimate
+            )
+            if entryMode == .list, !itemInputs.isEmpty, entryItems == nil {
+                return false
+            }
+
+            let resolvedInputText = suggestedFoodName()
             let entry = FoodEntry(
                 id: entryId,
                 userId: userId,
                 date: activeDate,
-                inputType: analysisInputType,
-                inputText: inputText.isEmpty ? nil : inputText,
+                inputType: resolvedInputType.databaseValue,
+                inputText: resolvedInputText.isEmpty ? nil : resolvedInputText,
                 imagePath: imagePath,
                 calories: calories,
                 protein: protein,
@@ -178,7 +223,7 @@ final class AddLogViewModel: ObservableObject {
                 createdAt: nil
             )
 
-            try await entryRepository.insertFoodEntry(entry)
+            try await entryRepository.insertFoodEntry(entry, items: entryItems ?? [])
             return true
         } catch {
             errorMessage = "Unable to save entry: \(error.localizedDescription)"
@@ -187,11 +232,21 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func suggestedFoodName() -> String {
+        let itemNames = items
+            .map { $0.name.trimmingCharacters(in: .whitespacesAndNewlines) }
+            .filter { !$0.isEmpty }
+        if !itemNames.isEmpty {
+            return itemNames.joined(separator: " + ")
+        }
+        let description = descriptionText.trimmingCharacters(in: .whitespacesAndNewlines)
+        if !description.isEmpty {
+            return description
+        }
         let aiName = estimate?.foodName?.trimmingCharacters(in: .whitespacesAndNewlines)
         if let aiName, !aiName.isEmpty {
             return aiName
         }
-        return inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+        return "Meal"
     }
 
     func validateLibraryName(_ name: String) -> Bool {
@@ -248,6 +303,72 @@ final class AddLogViewModel: ObservableObject {
         return noSpaces
     }
 
+    private func buildSavedFoodStates(for foods: [SavedFood]) -> [UUID: SavedFoodQuickState] {
+        var nextState: [UUID: SavedFoodQuickState] = [:]
+        for food in foods {
+            if let existing = savedFoodStates[food.id] {
+                nextState[food.id] = existing
+            } else {
+                nextState[food.id] = defaultSavedFoodState(for: food)
+            }
+        }
+        return nextState
+    }
+
+    private func defaultSavedFoodState(for food: SavedFood) -> SavedFoodQuickState {
+        SavedFoodQuickState(
+            isActive: false,
+            gramsText: "",
+            errorMessage: nil
+        )
+    }
+
+    private func invalidateSavedFoodsEstimate() {
+        guard savedFoodsEstimateActive else { return }
+        estimate = nil
+        caloriesText = ""
+        proteinText = ""
+        carbsText = ""
+        fatText = ""
+        savedFoodsEstimateActive = false
+    }
+
+    private func updateEstimateFromSavedFoods(using selections: [(food: SavedFood, quantity: Double)]) {
+        let totals = selections.reduce(into: MacroTotals.zero) { partial, item in
+            let totals = item.food.macros(for: item.quantity)
+            partial.calories += totals.calories
+            partial.protein += totals.protein
+            partial.carbs += totals.carbs
+            partial.fat += totals.fat
+        }
+
+        let name = selections.map { $0.food.name }.joined(separator: " + ")
+        estimate = MacroEstimate(
+            calories: Double(totals.calories),
+            protein: Double(totals.protein),
+            carbs: Double(totals.carbs),
+            fat: Double(totals.fat),
+            confidence: nil,
+            source: "text",
+            foodName: name,
+            notes: "Saved foods",
+            items: []
+        )
+        caloriesText = String(totals.calories)
+        proteinText = String(totals.protein)
+        carbsText = String(totals.carbs)
+        fatText = String(totals.fat)
+        entryMode = .description
+        descriptionText = name
+        items = [FoodItemDraft()]
+        analysisStage = .idle
+        streamPreview = ""
+        streamBuffer = ""
+        errorMessage = nil
+        savedFoodsEstimateActive = true
+        clearPhoto()
+    }
+
     func saveLibraryDraft(_ draft: SavedFoodDraft) async -> LibrarySaveResult {
         isSaving = true
         errorMessage = nil
@@ -287,7 +408,9 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func reset() {
-        inputText = ""
+        entryMode = .list
+        descriptionText = ""
+        items = [FoodItemDraft()]
         selectedItem = nil
         selectedImageData = nil
         estimate = nil
@@ -304,6 +427,10 @@ final class AddLogViewModel: ObservableObject {
         streamPreview = ""
         streamBuffer = ""
         isLabelPhoto = false
+        savedFoodsError = nil
+        savedFoodsSelectionError = nil
+        savedFoodsEstimateActive = false
+        savedFoodStates = buildSavedFoodStates(for: savedFoods)
     }
 
     func clearPhoto() {
@@ -312,6 +439,17 @@ final class AddLogViewModel: ObservableObject {
         pendingEntryId = nil
         pendingImagePath = nil
         isLabelPhoto = false
+    }
+
+    func addItemRow() {
+        items.append(FoodItemDraft())
+    }
+
+    func removeItemRow(id: UUID) {
+        items.removeAll { $0.id == id }
+        if items.isEmpty {
+            items = [FoodItemDraft()]
+        }
     }
 
     func applySavedFood(_ selection: SavedFoodSelection) {
@@ -324,18 +462,115 @@ final class AddLogViewModel: ObservableObject {
             confidence: nil,
             source: "text",
             foodName: selection.food.name,
-            notes: "Saved food"
+            notes: "Saved food",
+            items: []
         )
         caloriesText = String(totals.calories)
         proteinText = String(totals.protein)
         carbsText = String(totals.carbs)
         fatText = String(totals.fat)
-        inputText = selection.food.name
+        entryMode = .description
+        descriptionText = selection.food.name
+        items = [FoodItemDraft()]
         analysisStage = .idle
         streamPreview = ""
         streamBuffer = ""
         errorMessage = nil
         clearPhoto()
+    }
+
+    func loadSavedFoods() async {
+        isSavedFoodsLoading = true
+        savedFoodsError = nil
+        defer { isSavedFoodsLoading = false }
+        do {
+            let foods = try await savedFoodRepository.fetchFoods()
+            savedFoods = foods
+            savedFoodStates = buildSavedFoodStates(for: foods)
+        } catch {
+            savedFoodsError = "Unable to load saved foods: \(error.localizedDescription)"
+        }
+    }
+
+    func savedFoodState(for food: SavedFood) -> SavedFoodQuickState {
+        savedFoodStates[food.id] ?? defaultSavedFoodState(for: food)
+    }
+
+    var selectedSavedFoodCount: Int {
+        savedFoodStates.values.filter { $0.isActive }.count
+    }
+
+    var maxSavedFoodsAllowed: Int {
+        5
+    }
+
+    var canAnalyzeSavedFoodsSelection: Bool {
+        let activeFoods = savedFoods.filter { savedFoodState(for: $0).isActive }
+        guard !activeFoods.isEmpty else { return false }
+        return activeFoods.allSatisfy { food in
+            guard let quantity = parseMacro(savedFoodState(for: food).gramsText) else { return false }
+            return quantity > 0
+        }
+    }
+
+    func toggleSavedFood(_ food: SavedFood) {
+        var state = savedFoodState(for: food)
+        if state.isActive {
+            state.isActive = false
+            state.errorMessage = nil
+            state.gramsText = ""
+            savedFoodStates[food.id] = state
+            invalidateSavedFoodsEstimate()
+            return
+        }
+        guard selectedSavedFoodCount < maxSavedFoodsAllowed else {
+            savedFoodsSelectionError = "You can add up to \(maxSavedFoodsAllowed) items."
+            return
+        }
+        state.isActive = true
+        savedFoodsSelectionError = nil
+        state.gramsText = ""
+        savedFoodStates[food.id] = state
+        invalidateSavedFoodsEstimate()
+    }
+
+    func updateSavedFoodQuantityText(_ food: SavedFood, text: String) {
+        var state = savedFoodState(for: food)
+        state.gramsText = text
+        state.errorMessage = nil
+        savedFoodsSelectionError = nil
+        savedFoodStates[food.id] = state
+        invalidateSavedFoodsEstimate()
+    }
+
+    func analyzeSavedFoodsSelection() -> Bool {
+        savedFoodsSelectionError = nil
+        let activeFoods = savedFoods.filter { savedFoodState(for: $0).isActive }
+        guard !activeFoods.isEmpty else {
+            savedFoodsSelectionError = "Select at least one saved food."
+            return false
+        }
+
+        var selections: [(food: SavedFood, quantity: Double)] = []
+        for food in activeFoods {
+            var state = savedFoodState(for: food)
+            guard let quantity = parseMacro(state.gramsText), quantity > 0 else {
+                state.errorMessage = "Enter grams."
+                savedFoodStates[food.id] = state
+                continue
+            }
+            state.errorMessage = nil
+            savedFoodStates[food.id] = state
+            selections.append((food: food, quantity: quantity))
+        }
+
+        guard selections.count == activeFoods.count else {
+            savedFoodsSelectionError = "Please fix grams for selected items."
+            return false
+        }
+
+        updateEstimateFromSavedFoods(using: selections)
+        return true
     }
 
     private func resolvedActiveDate(for userId: UUID) async throws -> String {
@@ -365,7 +600,7 @@ final class AddLogViewModel: ObservableObject {
     }
 
     private var resolvedInputType: LogInputType {
-        let hasText = !inputText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        let hasText = hasTextInput
         let hasPhoto = selectedImageData != nil || pendingImagePath != nil
         switch (hasPhoto, hasText) {
         case (true, true):
@@ -393,19 +628,20 @@ final class AddLogViewModel: ObservableObject {
             streamPreview = streamBuffer
         }
 
-        if let partial = parsePartialEstimate(from: streamBuffer) {
-            if let calories = partial.calories {
-                caloriesText = formatMacro(calories)
-            }
-            if let protein = partial.protein {
-                proteinText = formatMacro(protein)
-            }
-            if let carbs = partial.carbs {
-                carbsText = formatMacro(carbs)
-            }
-            if let fat = partial.fat {
-                fatText = formatMacro(fat)
-            }
+        guard shouldParseStreamTotals, let partial = parsePartialEstimate(from: streamBuffer) else {
+            return
+        }
+        if let calories = partial.calories {
+            caloriesText = formatMacro(calories)
+        }
+        if let protein = partial.protein {
+            proteinText = formatMacro(protein)
+        }
+        if let carbs = partial.carbs {
+            carbsText = formatMacro(carbs)
+        }
+        if let fat = partial.fat {
+            fatText = formatMacro(fat)
         }
     }
 
@@ -441,6 +677,95 @@ final class AddLogViewModel: ObservableObject {
             return nil
         }
         return Double(text[valueRange])
+    }
+
+    private var hasTextInput: Bool {
+        switch entryMode {
+        case .list:
+            return hasItemInput
+        case .description:
+            return !descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        }
+    }
+
+    private var hasItemInput: Bool {
+        items.contains { draft in
+            let name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let grams = draft.gramsText.trimmingCharacters(in: .whitespacesAndNewlines)
+            return !name.isEmpty || !grams.isEmpty
+        }
+    }
+
+    private var shouldParseStreamTotals: Bool {
+        switch entryMode {
+        case .list:
+            return !hasItemInput
+        case .description:
+            return true
+        }
+    }
+
+    private func validatedItemInputs(requireAtLeastOne: Bool) -> [AIItemInput]? {
+        guard entryMode == .list else { return [] }
+        var inputs: [AIItemInput] = []
+
+        for draft in items {
+            let name = draft.name.trimmingCharacters(in: .whitespacesAndNewlines)
+            let gramsText = draft.gramsText.trimmingCharacters(in: .whitespacesAndNewlines)
+            if name.isEmpty && gramsText.isEmpty {
+                continue
+            }
+            guard !name.isEmpty else {
+                errorMessage = "Please enter a food name for each item."
+                return nil
+            }
+            guard let grams = parseMacro(gramsText), grams > 0 else {
+                errorMessage = "Please enter grams for each item."
+                return nil
+            }
+            inputs.append(AIItemInput(name: name, grams: grams))
+        }
+
+        if requireAtLeastOne && inputs.isEmpty {
+            errorMessage = "Add at least one food item or attach a photo."
+            return nil
+        }
+
+        return inputs
+    }
+
+    private func buildEntryItems(
+        entryId: UUID,
+        userId: UUID,
+        itemInputs: [AIItemInput],
+        estimate: MacroEstimate
+    ) -> [FoodEntryItem]? {
+        guard !itemInputs.isEmpty else { return [] }
+        guard !estimate.items.isEmpty else {
+            errorMessage = "Please run analysis to estimate each item."
+            return nil
+        }
+        guard estimate.items.count == itemInputs.count else {
+            errorMessage = "AI returned a different number of items. Please try again."
+            return nil
+        }
+
+        return zip(itemInputs, estimate.items).map { input, result in
+            FoodEntryItem(
+                id: UUID(),
+                entryId: entryId,
+                userId: userId,
+                name: input.name,
+                grams: input.grams,
+                calories: result.calories,
+                protein: result.protein,
+                carbs: result.carbs,
+                fat: result.fat,
+                aiConfidence: result.confidence,
+                aiNotes: result.notes ?? "",
+                createdAt: nil
+            )
+        }
     }
 }
 

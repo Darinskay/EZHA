@@ -8,13 +8,35 @@ struct FoodEntryRepository {
         self.supabase = supabase
     }
 
-    func insertFoodEntry(_ entry: FoodEntry) async throws {
+    func insertFoodEntry(_ entry: FoodEntry, items: [FoodEntryItem] = []) async throws {
         var payload = entry
-        payload.userId = try await currentUserId()
+        let userId = try await currentUserId()
+        payload.userId = userId
         try await supabase
             .from("food_entries")
             .insert(payload)
             .execute()
+
+        guard !items.isEmpty else { return }
+        let itemPayloads = items.map { item -> FoodEntryItem in
+            var updated = item
+            updated.userId = userId
+            updated.entryId = entry.id
+            return updated
+        }
+        do {
+            try await supabase
+                .from("food_entry_items")
+                .insert(itemPayloads)
+                .execute()
+        } catch {
+            _ = try? await supabase
+                .from("food_entries")
+                .delete()
+                .eq("id", value: entry.id.uuidString)
+                .execute()
+            throw error
+        }
     }
 
     func fetchEntries(for date: Date, timeZone: TimeZone) async throws -> [FoodEntry] {
@@ -52,7 +74,7 @@ struct FoodEntryRepository {
     }
 
     private func currentUserId() async throws -> UUID {
-        try await supabase.auth.session.user.id
+        try await SupabaseConfig.currentUserId()
     }
 
     private func dateFormatter(timeZone: TimeZone) -> DateFormatter {

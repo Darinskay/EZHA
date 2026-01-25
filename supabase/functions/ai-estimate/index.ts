@@ -19,8 +19,12 @@ serve(async (req) => {
 
   const text = typeof payload.text === "string" ? payload.text.trim() : "";
   const imagePath = typeof payload.imagePath === "string" ? payload.imagePath.trim() : "";
-  if (!text && !imagePath) {
-    return jsonError("Missing required field: text or imagePath");
+  const { items, error: itemsError } = parseItems(payload.items);
+  if (itemsError) {
+    return jsonError(itemsError);
+  }
+  if (!text && !imagePath && items.length === 0) {
+    return jsonError("Missing required field: text, items, or imagePath");
   }
 
   const openAiKey = Deno.env.get("OPENAI_API_KEY");
@@ -54,11 +58,12 @@ serve(async (req) => {
 
   const model = payload.model ??
     Deno.env.get("OPENAI_MODEL") ??
-    "gpt-4o-mini";
+    "gpt-5-mini";
   const baseUrl = Deno.env.get("OPENAI_BASE_URL") ?? "https://api.openai.com/v1";
+  const isLabelInput = (payload.inputType ?? "text") === "label_photo";
 
-  const parsedWeight = text ? extractWeight(text) : null;
-  const prompt = buildPrompt(text, parsedWeight, payload.inputType ?? "text", imagePath);
+  const parsedWeight = items.length > 0 ? null : (text ? extractWeight(text) : null);
+  const prompt = buildPrompt(text, items, parsedWeight, payload.inputType ?? "text", imagePath);
   let imageUrl: string | null = null;
   if (imagePath) {
     try {
@@ -75,7 +80,19 @@ serve(async (req) => {
     }
   }
 
-  const response = await fetch(`${baseUrl}/chat/completions`, {
+  if (payload.stream) {
+    return await streamEstimate({
+      baseUrl,
+      model,
+      isLabelInput,
+      prompt,
+      imageUrl,
+      hasItems: items.length > 0,
+      openAiKey,
+    });
+  }
+
+  const response = await fetch(`${baseUrl}/responses`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -83,21 +100,21 @@ serve(async (req) => {
     },
     body: JSON.stringify({
       model,
-      temperature: 0.2,
-      response_format: { type: "json_object" },
-      messages: [
-        {
-          role: "system",
-          content:
-            "You are a nutrition assistant. Return only valid JSON. " +
-            "If the user description is unclear, estimate a typical portion and explain in notes.",
-        },
+      temperature: isLabelInput ? 0.0 : 0.2,
+      text: { format: { type: "json_object" } },
+      instructions:
+        "You are a nutrition estimation assistant. Return only valid JSON. " +
+        "All numeric fields are numbers without units. Calories must be in kcal; " +
+        "if the label shows kJ, first look for kcal; if kcal is absent, convert kJ to kcal (kJ / 4.184). " +
+        "Protein, carbs, and fat must be grams. " +
+        "If the input is unclear, estimate a typical portion and explain assumptions in notes.",
+      input: [
         {
           role: "user",
           content: imageUrl ? [
-            { type: "text", text: prompt },
-            { type: "image_url", image_url: { url: imageUrl } },
-          ] : prompt,
+            { type: "input_text", text: prompt },
+            { type: "input_image", image_url: imageUrl },
+          ] : [{ type: "input_text", text: prompt }],
         },
       ],
     }),
@@ -113,7 +130,14 @@ serve(async (req) => {
   let content = "";
   try {
     const data = await response.json();
-    content = data?.choices?.[0]?.message?.content ?? "";
+    if (data?.status && data.status !== "completed") {
+      return jsonError(`OpenAI response status: ${data.status}`);
+    }
+    const refusal = extractRefusal(data);
+    if (refusal) {
+      return jsonError(refusal);
+    }
+    content = extractOutputText(data);
   } catch {
     return jsonError("Invalid OpenAI response.");
   }
@@ -125,60 +149,51 @@ serve(async (req) => {
     return jsonError("OpenAI returned invalid JSON.");
   }
 
-  if (result.error) {
-    return jsonError(result.error);
+  const normalizedResult = normalizeResult(result, { requireItems: items.length > 0 });
+  if ("error" in normalizedResult) {
+    return jsonError(normalizedResult.error);
   }
 
-  const missingFields = requiredFields.filter((field) =>
-    result[field] === undefined || result[field] === null
-  );
-  if (missingFields.length > 0) {
-    return jsonError(`Missing required field: ${missingFields.join(", ")}`);
-  }
-
-  if (!allowedSources.includes(result.source)) {
-    return jsonError("Missing required field: source");
-  }
-
-  const normalized = {
-    calories: Number(result.calories),
-    protein: Number(result.protein),
-    carbs: Number(result.carbs),
-    fat: Number(result.fat),
-    confidence: result.confidence === undefined ? undefined : Number(result.confidence),
-    source: result.source,
-    notes: result.notes,
-  };
-
-  if (
-    [normalized.calories, normalized.protein, normalized.carbs, normalized.fat].some((value) =>
-      Number.isNaN(value)
-    )
-  ) {
-    return jsonError("OpenAI returned invalid numeric values.");
-  }
-
-  return new Response(JSON.stringify(normalized), {
+  return new Response(JSON.stringify(normalizedResult.normalized), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
 });
 
 type RequestPayload = {
   text?: string;
+  items?: ItemInput[];
   imagePath?: string;
   inputType?: string;
   model?: string;
+  stream?: boolean;
+};
+
+type ItemInput = {
+  name: string;
+  grams: number;
 };
 
 type AIResult = {
+  items?: AIItemResult[];
+  totals?: MacroTotals;
   calories?: number;
   protein?: number;
   carbs?: number;
   fat?: number;
   confidence?: number;
   source?: string;
+  food_name?: string;
   notes?: string;
   error?: string;
+};
+
+type NormalizedResult = {
+  totals: MacroTotals;
+  items?: AIItemResult[];
+  confidence?: number;
+  source: string;
+  food_name?: string;
+  notes: string;
 };
 
 type ParsedWeight = {
@@ -187,14 +202,23 @@ type ParsedWeight = {
   grams?: number;
 };
 
-const requiredFields: Array<keyof AIResult> = [
-  "calories",
-  "protein",
-  "carbs",
-  "fat",
-  "source",
-  "notes",
-];
+type MacroTotals = {
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+};
+
+type AIItemResult = {
+  name: string;
+  grams: number;
+  calories: number;
+  protein: number;
+  carbs: number;
+  fat: number;
+  confidence?: number;
+  notes?: string;
+};
 
 const allowedSources = ["food_photo", "label_photo", "text", "unknown"];
 
@@ -202,6 +226,30 @@ function jsonError(message: string) {
   return new Response(JSON.stringify({ error: message }), {
     headers: { ...corsHeaders, "Content-Type": "application/json" },
   });
+}
+
+function parseItems(value: unknown): { items: ItemInput[]; error?: string } {
+  if (!Array.isArray(value)) {
+    return { items: [] };
+  }
+
+  const items: ItemInput[] = [];
+  for (const entry of value) {
+    if (!entry || typeof entry !== "object") {
+      return { items: [], error: "Invalid items payload." };
+    }
+    const name = typeof (entry as { name?: unknown }).name === "string"
+      ? (entry as { name: string }).name.trim()
+      : "";
+    const gramsRaw = (entry as { grams?: unknown }).grams;
+    const grams = typeof gramsRaw === "number" ? gramsRaw : Number(gramsRaw);
+    if (!name || !Number.isFinite(grams) || grams <= 0) {
+      return { items: [], error: "Invalid items payload." };
+    }
+    items.push({ name, grams });
+  }
+
+  return { items };
 }
 
 function extractWeight(text: string): ParsedWeight | null {
@@ -247,6 +295,7 @@ function normalizeToGrams(value: number, unit: string): number | undefined {
 
 function buildPrompt(
   text: string,
+  items: ItemInput[],
   parsedWeight: ParsedWeight | null,
   inputType: string,
   imagePath: string,
@@ -256,19 +305,400 @@ function buildPrompt(
       (parsedWeight.grams ? ` (~${Math.round(parsedWeight.grams)} g)` : "")
     : "Parsed weight: none";
 
+  const itemLines = items.length > 0
+    ? [
+      "Food items (use grams exactly, preserve order):",
+      ...items.map((item, index) => `${index + 1}. ${item.name} - ${item.grams} g`),
+    ]
+    : ["Food items: [none]"];
+
+  const outputSpec = items.length > 0
+    ? [
+      "Return JSON with fields in this exact order:",
+      "items, totals, source, food_name, notes.",
+      "items must be an array matching the input order. Each item must include:",
+      "name, grams, calories, protein, carbs, fat, confidence, notes (confidence/notes optional).",
+      "totals must be the sum of all items (calories, protein, carbs, fat).",
+      "food_name is optional; use a short name if identifiable.",
+    ]
+    : [
+      "Return JSON with fields in this exact order:",
+      "totals, source, food_name, notes.",
+      "totals must include calories, protein, carbs, fat.",
+      "food_name is optional; use a short name if identifiable.",
+    ];
+
   return [
-    "Estimate calories and macros from the input.",
-    "If the input includes a nutrition label, prioritize the label values.",
-    "If the input is a food photo, estimate a typical portion.",
-    "Use the parsed weight if present; otherwise, assume a typical portion.",
-    "Return JSON with fields in this exact order:",
-    "calories, protein, carbs, fat, confidence, source, notes.",
+    "Task: estimate calories (kcal) and macros (grams) from the input.",
+    "Units: calories must be kcal. If a label shows kJ, first look for kcal on the label; if no kcal value is present, convert kJ to kcal using kcal = kJ / 4.184.",
+    "Macros must be grams; output numbers only (no units).",
+    "If a nutrition label is present, prioritize it over visual estimation.",
+    "Handle labels in any language; translate as needed to identify calories, protein, carbs, fat.",
+    "Prefer per-100g values first. If per-100g exists, never use per-portion values.",
+    "If weight is parsed, scale per-100g values to that weight.",
+    "If only a food photo is available, estimate a typical portion and explain assumptions in notes.",
+    ...outputSpec,
+    "Notes must be a short string (can be empty).",
     "Set source to one of: food_photo, label_photo, text, unknown.",
     `Input type: ${inputType}`,
     `User text: ${text || "[none]"}`,
     `Image path: ${imagePath || "[none]"}`,
+    ...itemLines,
     weightLine,
   ].join("\n");
+}
+
+function normalizeResult(
+  result: AIResult,
+  options: { requireItems: boolean },
+): { normalized: NormalizedResult } | { error: string } {
+  if (result.error) {
+    return { error: result.error };
+  }
+
+  if (!result.source || !allowedSources.includes(result.source)) {
+    return { error: "Missing required field: source" };
+  }
+
+  if (typeof result.notes !== "string") {
+    return { error: "Missing required field: notes" };
+  }
+
+  const totals = normalizeTotals(result);
+  if (!totals) {
+    return { error: "Missing required field: totals" };
+  }
+
+  let normalizedItems: AIItemResult[] | undefined;
+  if (result.items) {
+    normalizedItems = [];
+    for (const item of result.items) {
+      const name = typeof item.name === "string" ? item.name.trim() : "";
+      const grams = Number(item.grams);
+      const calories = Number(item.calories);
+      const protein = Number(item.protein);
+      const carbs = Number(item.carbs);
+      const fat = Number(item.fat);
+      if (!name || !Number.isFinite(grams) || grams <= 0) {
+        return { error: "OpenAI returned invalid item data." };
+      }
+      if ([calories, protein, carbs, fat].some((value) => Number.isNaN(value))) {
+        return { error: "OpenAI returned invalid numeric values." };
+      }
+      normalizedItems.push({
+        name,
+        grams,
+        calories,
+        protein,
+        carbs,
+        fat,
+        confidence: item.confidence === undefined ? undefined : Number(item.confidence),
+        notes: item.notes,
+      });
+    }
+  }
+
+  if (options.requireItems && (!normalizedItems || normalizedItems.length === 0)) {
+    return { error: "Missing required field: items" };
+  }
+
+  return {
+    normalized: {
+      totals,
+      items: normalizedItems,
+      confidence: result.confidence === undefined ? undefined : Number(result.confidence),
+      source: result.source,
+      food_name: result.food_name?.trim() || undefined,
+      notes: result.notes,
+    },
+  };
+}
+
+function normalizeTotals(result: AIResult): MacroTotals | null {
+  if (result.totals) {
+    const calories = Number(result.totals.calories);
+    const protein = Number(result.totals.protein);
+    const carbs = Number(result.totals.carbs);
+    const fat = Number(result.totals.fat);
+    if ([calories, protein, carbs, fat].some((value) => Number.isNaN(value))) {
+      return null;
+    }
+    return { calories, protein, carbs, fat };
+  }
+
+  if (
+    result.calories === undefined ||
+    result.protein === undefined ||
+    result.carbs === undefined ||
+    result.fat === undefined
+  ) {
+    return null;
+  }
+
+  const calories = Number(result.calories);
+  const protein = Number(result.protein);
+  const carbs = Number(result.carbs);
+  const fat = Number(result.fat);
+  if ([calories, protein, carbs, fat].some((value) => Number.isNaN(value))) {
+    return null;
+  }
+  return { calories, protein, carbs, fat };
+}
+
+function extractOutputText(data: unknown): string {
+  if (typeof data === "object" && data !== null && "output_text" in data) {
+    const outputText = (data as { output_text?: unknown }).output_text;
+    if (typeof outputText === "string") {
+      return outputText;
+    }
+  }
+
+  const output = (data as { output?: unknown })?.output;
+  if (!Array.isArray(output)) {
+    return "";
+  }
+
+  const texts: string[] = [];
+  for (const item of output) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const content = (item as { content?: unknown }).content;
+    if (!Array.isArray(content)) {
+      continue;
+    }
+    for (const part of content) {
+      if (!part || typeof part !== "object") {
+        continue;
+      }
+      if ((part as { type?: unknown }).type === "output_text") {
+        const text = (part as { text?: unknown }).text;
+        if (typeof text === "string") {
+          texts.push(text);
+        }
+      }
+    }
+  }
+
+  return texts.join("");
+}
+
+function extractRefusal(data: unknown): string | null {
+  const output = (data as { output?: unknown })?.output;
+  if (!Array.isArray(output)) {
+    return null;
+  }
+
+  for (const item of output) {
+    if (!item || typeof item !== "object") {
+      continue;
+    }
+    const content = (item as { content?: unknown }).content;
+    if (!Array.isArray(content)) {
+      continue;
+    }
+    for (const part of content) {
+      if (!part || typeof part !== "object") {
+        continue;
+      }
+      if ((part as { type?: unknown }).type === "refusal") {
+        const refusal = (part as { refusal?: unknown }).refusal;
+        if (typeof refusal === "string" && refusal.trim()) {
+          return refusal;
+        }
+        return "OpenAI refused to answer.";
+      }
+    }
+  }
+
+  return null;
+}
+
+async function streamEstimate({
+  baseUrl,
+  model,
+  isLabelInput,
+  prompt,
+  imageUrl,
+  hasItems,
+  openAiKey,
+}: {
+  baseUrl: string;
+  model: string;
+  isLabelInput: boolean;
+  prompt: string;
+  imageUrl: string | null;
+  hasItems: boolean;
+  openAiKey: string;
+}): Promise<Response> {
+  const encoder = new TextEncoder();
+  const decoder = new TextDecoder();
+
+  const sendEvent = (controller: ReadableStreamDefaultController, event: string, data: unknown) => {
+    const payload = JSON.stringify(data);
+    controller.enqueue(encoder.encode(`event: ${event}\\ndata: ${payload}\\n\\n`));
+  };
+
+  const stream = new ReadableStream({
+    start: async (controller) => {
+      try {
+        sendEvent(controller, "status", { stage: "requesting_model" });
+
+        const response = await fetch(`${baseUrl}/responses`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${openAiKey}`,
+          },
+          body: JSON.stringify({
+            model,
+            temperature: isLabelInput ? 0.0 : 0.2,
+            text: { format: { type: "json_object" } },
+            stream: true,
+            instructions:
+              "You are a nutrition estimation assistant. Return only valid JSON. " +
+              "All numeric fields are numbers without units. Calories must be in kcal; " +
+              "if the label shows kJ, first look for kcal; if kcal is absent, convert kJ to kcal (kJ / 4.184). " +
+              "Protein, carbs, and fat must be grams. " +
+              "If the input is unclear, estimate a typical portion and explain assumptions in notes.",
+            input: [
+              {
+                role: "user",
+                content: imageUrl ? [
+                  { type: "input_text", text: prompt },
+                  { type: "input_image", image_url: imageUrl },
+                ] : [{ type: "input_text", text: prompt }],
+              },
+            ],
+          }),
+        });
+
+        if (!response.ok || !response.body) {
+          const errorText = await response.text();
+          sendEvent(controller, "error", {
+            error: `OpenAI request failed with status ${response.status}: ${errorText || "unknown error"}.`,
+          });
+          controller.close();
+          return;
+        }
+
+        const reader = response.body.getReader();
+        let buffer = "";
+        let outputText = "";
+
+        while (true) {
+          const { value, done } = await reader.read();
+          if (done) break;
+          buffer += decoder.decode(value, { stream: true });
+
+          let separator = nextSseSeparator(buffer);
+          while (separator) {
+            const rawEvent = buffer.slice(0, separator.index);
+            buffer = buffer.slice(separator.index + separator.length);
+
+            const parsed = parseSseEvent(rawEvent);
+            if (!parsed?.data) {
+              separator = nextSseSeparator(buffer);
+              continue;
+            }
+
+            if (parsed.data === "[DONE]") {
+              separator = nextSseSeparator(buffer);
+              continue;
+            }
+
+            let payload: { type?: string; delta?: string } | null = null;
+            try {
+              payload = JSON.parse(parsed.data);
+            } catch {
+              payload = null;
+            }
+
+            if (payload?.type === "response.output_text.delta" && payload.delta) {
+              outputText += payload.delta;
+              sendEvent(controller, "delta", { delta: payload.delta });
+            }
+
+            separator = nextSseSeparator(buffer);
+          }
+        }
+
+        sendEvent(controller, "status", { stage: "finalizing" });
+
+        let result: AIResult;
+        try {
+          result = JSON.parse(outputText);
+        } catch {
+          sendEvent(controller, "error", { error: "OpenAI returned invalid JSON." });
+          controller.close();
+          return;
+        }
+
+        const normalizedResult = normalizeResult(result, { requireItems: hasItems });
+        if ("error" in normalizedResult) {
+          sendEvent(controller, "error", { error: normalizedResult.error });
+          controller.close();
+          return;
+        }
+
+        sendEvent(controller, "result", normalizedResult.normalized);
+        controller.close();
+      } catch (error) {
+        const message = error instanceof Error ? error.message : "Unknown error.";
+        sendEvent(controller, "error", { error: message });
+        controller.close();
+      }
+    },
+  });
+
+  return new Response(stream, {
+    headers: {
+      ...corsHeaders,
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+    },
+  });
+}
+
+function parseSseEvent(raw: string): { event: string; data: string } | null {
+  const normalized = raw.replace(/\\r\\n/g, "\\n");
+  const lines = normalized.split("\\n");
+  let event = "";
+  const dataLines: string[] = [];
+
+  for (const line of lines) {
+    if (line.startsWith("event:")) {
+      event = line.replace("event:", "").trim();
+    } else if (line.startsWith("data:")) {
+      dataLines.push(line.replace("data:", "").trim());
+    }
+  }
+
+  const data = dataLines.join("\\n");
+  if (!data) return null;
+  return { event, data };
+}
+
+function nextSseSeparator(buffer: string): { index: number; length: number } | null {
+  const lfIndex = buffer.indexOf("\\n\\n");
+  const crlfIndex = buffer.indexOf("\\r\\n\\r\\n");
+
+  if (lfIndex === -1 && crlfIndex === -1) {
+    return null;
+  }
+
+  if (lfIndex === -1) {
+    return { index: crlfIndex, length: 4 };
+  }
+
+  if (crlfIndex === -1) {
+    return { index: lfIndex, length: 2 };
+  }
+
+  return lfIndex < crlfIndex
+    ? { index: lfIndex, length: 2 }
+    : { index: crlfIndex, length: 4 };
 }
 
 async function createSignedImageUrl({

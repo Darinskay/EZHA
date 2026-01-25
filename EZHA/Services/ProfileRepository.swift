@@ -80,7 +80,7 @@ struct ProfileRepository {
     }
 
     private func currentUserId() async throws -> UUID {
-        try await supabase.auth.session.user.id
+        try await SupabaseConfig.currentUserId()
     }
 
     private static let dateFormatter: DateFormatter = {

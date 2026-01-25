@@ -31,6 +31,21 @@ create table if not exists public.food_entries (
     created_at timestamptz not null default now()
 );
 
+create table if not exists public.food_entry_items (
+    id uuid primary key default gen_random_uuid(),
+    entry_id uuid not null references public.food_entries(id) on delete cascade,
+    user_id uuid not null references auth.users(id) on delete cascade,
+    name text not null,
+    grams numeric not null check (grams > 0),
+    calories numeric not null default 0,
+    protein numeric not null default 0,
+    carbs numeric not null default 0,
+    fat numeric not null default 0,
+    ai_confidence numeric check (ai_confidence between 0 and 1),
+    ai_notes text not null default '',
+    created_at timestamptz not null default now()
+);
+
 create table if not exists public.daily_summaries (
     user_id uuid not null references auth.users(id) on delete cascade,
     date date not null,
@@ -76,12 +91,15 @@ alter table public.saved_foods add column if not exists carbs_per_serving numeri
 alter table public.saved_foods add column if not exists fat_per_serving numeric not null default 0;
 
 create index if not exists food_entries_user_date_idx on public.food_entries (user_id, date);
+create index if not exists food_entry_items_entry_idx on public.food_entry_items (entry_id);
+create index if not exists food_entry_items_user_idx on public.food_entry_items (user_id);
 create index if not exists profiles_updated_at_idx on public.profiles (updated_at);
 create index if not exists daily_summaries_user_date_idx on public.daily_summaries (user_id, date);
 create index if not exists saved_foods_user_name_idx on public.saved_foods (user_id, name);
 
 alter table public.profiles enable row level security;
 alter table public.food_entries enable row level security;
+alter table public.food_entry_items enable row level security;
 alter table public.daily_summaries enable row level security;
 alter table public.saved_foods enable row level security;
 
@@ -95,6 +113,9 @@ create policy "Profiles update" on public.profiles
     for update using (auth.uid() = user_id);
 
 create policy "Food entries all" on public.food_entries
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "Food entry items all" on public.food_entry_items
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "Daily summaries all" on public.daily_summaries

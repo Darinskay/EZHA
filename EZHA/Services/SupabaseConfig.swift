@@ -42,6 +42,23 @@ enum SupabaseConfig {
         supabaseAnonKey
     }
 
+    /// Buffer time before token expiry to proactively refresh (5 minutes)
+    private static let refreshBufferSeconds: TimeInterval = 300
+
+    static func currentSession() async throws -> Session {
+        var session = try await client.auth.session
+        // Proactively refresh if token expires within buffer time
+        let expiresAt = Date(timeIntervalSince1970: TimeInterval(session.expiresAt))
+        if session.isExpired || expiresAt.timeIntervalSinceNow < refreshBufferSeconds {
+            session = try await client.auth.refreshSession()
+        }
+        return session
+    }
+
+    static func currentUserId() async throws -> UUID {
+        try await currentSession().user.id
+    }
+
     private static func infoPlistValue(for key: String) -> String {
         guard let value = Bundle.main.object(
             forInfoDictionaryKey: key

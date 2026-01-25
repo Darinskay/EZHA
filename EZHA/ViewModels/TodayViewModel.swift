@@ -30,7 +30,7 @@ final class TodayViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            let userId = try await SupabaseConfig.client.auth.session.user.id
+            let userId = try await SupabaseConfig.currentUserId()
             let defaultProfile = Profile.defaultTargets(
                 for: userId,
                 activeDate: Self.dateFormatter.string(from: Date())

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */; };
+		9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */; };
 		9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */; };
 		9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607352F1A5F5500825D3F /* SessionManager.swift */; };
 		9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073F2F1A5F5500825D3F /* MainTabView.swift */; };
@@ -67,6 +68,7 @@
 
 /* Begin PBXFileReference section */
 		9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpers.swift; sourceTree = "<group>"; };
+		9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodQuickAddSheet.swift; sourceTree = "<group>"; };
 		9B06072B2F1A5F5500825D3F /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ai_estimation_contract.md; sourceTree = "<group>"; };
 		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
@@ -222,6 +224,7 @@
 				9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */,
 				9B06073F2F1A5F5500825D3F /* MainTabView.swift */,
 				9B0607402F1A5F5500825D3F /* RootView.swift */,
+				9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */,
 				9B7A8B072F9A100100000001 /* SavedFoodRow.swift */,
 				9B0607412F1A5F5500825D3F /* SettingsView.swift */,
 				9B0607422F1A5F5500825D3F /* TodayView.swift */,
@@ -447,6 +450,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */,
+				9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */,
 				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
 				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
 				9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */,
