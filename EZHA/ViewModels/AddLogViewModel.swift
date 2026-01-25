@@ -15,24 +15,31 @@ final class AddLogViewModel: ObservableObject {
     @Published var isAnalyzing: Bool = false
     @Published var isSaving: Bool = false
     @Published var errorMessage: String? = nil
+    @Published var analysisStage: AnalysisStage = .idle
+    @Published var streamPreview: String = ""
+    @Published var isLabelPhoto: Bool = false
 
     private var pendingEntryId: UUID? = nil
     private var pendingImagePath: String? = nil
+    private var streamBuffer: String = ""
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
     private let profileRepository: ProfileRepository
     private let storageService: StorageService
+    private let savedFoodRepository: SavedFoodRepository
 
     init(
         analysisService: AIAnalysisService = AIAnalysisService(),
         entryRepository: FoodEntryRepository = FoodEntryRepository(),
         profileRepository: ProfileRepository = ProfileRepository(),
-        storageService: StorageService = StorageService()
+        storageService: StorageService = StorageService(),
+        savedFoodRepository: SavedFoodRepository = SavedFoodRepository()
     ) {
         self.analysisService = analysisService
         self.entryRepository = entryRepository
         self.profileRepository = profileRepository
         self.storageService = storageService
+        self.savedFoodRepository = savedFoodRepository
     }
 
     var canAnalyze: Bool {
@@ -48,6 +55,7 @@ final class AddLogViewModel: ObservableObject {
                 selectedImageData = data
                 pendingEntryId = nil
                 pendingImagePath = nil
+                isLabelPhoto = false
             }
         } catch {
             errorMessage = "Unable to load photo."
@@ -57,9 +65,18 @@ final class AddLogViewModel: ObservableObject {
     func analyze() async {
         isAnalyzing = true
         errorMessage = nil
+        analysisStage = .preparing
+        streamPreview = ""
+        streamBuffer = ""
+        estimate = nil
+        caloriesText = ""
+        proteinText = ""
+        carbsText = ""
+        fatText = ""
         defer { isAnalyzing = false }
         do {
             if let imageData = selectedImageData, pendingImagePath == nil {
+                analysisStage = .uploading
                 let userId = try await SupabaseConfig.client.auth.session.user.id
                 let entryId = pendingEntryId ?? UUID()
                 pendingEntryId = entryId
@@ -70,26 +87,58 @@ final class AddLogViewModel: ObservableObject {
                 )
             }
 
-            let result = try await analysisService.analyze(
+            analysisStage = .requestingModel
+            let stream = try await analysisService.analyzeStream(
                 text: inputText,
                 imagePath: pendingImagePath,
                 inputType: analysisInputType
             )
-            estimate = result
-            caloriesText = String(result.calories)
-            proteinText = String(result.protein)
-            carbsText = String(result.carbs)
-            fatText = String(result.fat)
+
+            for try await event in stream {
+                switch event {
+                case .status(let stage):
+                    analysisStage = AnalysisStage(from: stage)
+                case .delta(let delta):
+                    analysisStage = .streaming
+                    appendStream(delta)
+                case .result(let result):
+                    analysisStage = .finalizing
+                    estimate = result
+                    caloriesText = formatMacro(result.calories)
+                    proteinText = formatMacro(result.protein)
+                    carbsText = formatMacro(result.carbs)
+                    fatText = formatMacro(result.fat)
+                    streamPreview = ""
+                case .error(let message):
+                    throw AnalysisError.remote(message)
+                }
+            }
+
+            if estimate == nil {
+                let fallback = try await analysisService.analyze(
+                    text: inputText,
+                    imagePath: pendingImagePath,
+                    inputType: analysisInputType
+                )
+                estimate = fallback
+                caloriesText = formatMacro(fallback.calories)
+                proteinText = formatMacro(fallback.protein)
+                carbsText = formatMacro(fallback.carbs)
+                fatText = formatMacro(fallback.fat)
+                streamPreview = ""
+                analysisStage = .idle
+            }
         } catch {
             errorMessage = error.localizedDescription
+            analysisStage = .idle
         }
     }
 
     func saveEntry() async -> Bool {
-        guard let calories = Int(caloriesText),
-              let protein = Int(proteinText),
-              let carbs = Int(carbsText),
-              let fat = Int(fatText),
+        guard let calories = parseMacro(caloriesText),
+              let protein = parseMacro(proteinText),
+              let carbs = parseMacro(carbsText),
+              let fat = parseMacro(fatText),
               let estimate = estimate else {
             errorMessage = "Please enter valid macros."
             return false
@@ -116,13 +165,13 @@ final class AddLogViewModel: ObservableObject {
                 id: entryId,
                 userId: userId,
                 date: activeDate,
-                inputType: resolvedInputType.databaseValue,
+                inputType: analysisInputType,
                 inputText: inputText.isEmpty ? nil : inputText,
                 imagePath: imagePath,
-                calories: Double(calories),
-                protein: Double(protein),
-                carbs: Double(carbs),
-                fat: Double(fat),
+                calories: calories,
+                protein: protein,
+                carbs: carbs,
+                fat: fat,
                 aiConfidence: estimate.confidence,
                 aiSource: estimate.source,
                 aiNotes: estimate.notes,
@@ -133,6 +182,106 @@ final class AddLogViewModel: ObservableObject {
             return true
         } catch {
             errorMessage = "Unable to save entry: \(error.localizedDescription)"
+            return false
+        }
+    }
+
+    func suggestedFoodName() -> String {
+        let aiName = estimate?.foodName?.trimmingCharacters(in: .whitespacesAndNewlines)
+        if let aiName, !aiName.isEmpty {
+            return aiName
+        }
+        return inputText.trimmingCharacters(in: .whitespacesAndNewlines)
+    }
+
+    func validateLibraryName(_ name: String) -> Bool {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty {
+            errorMessage = "Please enter a food name to save to Library."
+            return false
+        }
+        return true
+    }
+
+    func buildLibraryDraft(name: String) -> SavedFoodDraft? {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            errorMessage = "Please enter a food name to save to Library."
+            return nil
+        }
+        guard let calories = parseMacro(caloriesText),
+              let protein = parseMacro(proteinText),
+              let carbs = parseMacro(carbsText),
+              let fat = parseMacro(fatText) else {
+            errorMessage = "Please enter valid macro values."
+            return nil
+        }
+
+        return SavedFoodDraft(
+            name: trimmed,
+            unitType: .per100g,
+            servingSize: nil,
+            servingUnit: nil,
+            caloriesPer100g: calories,
+            proteinPer100g: protein,
+            carbsPer100g: carbs,
+            fatPer100g: fat,
+            caloriesPerServing: 0,
+            proteinPerServing: 0,
+            carbsPerServing: 0,
+            fatPerServing: 0
+        )
+    }
+
+    private func parseMacro(_ text: String) -> Double? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.isEmpty { return nil }
+        let normalized = normalizedNumberString(trimmed)
+        return Double(normalized)
+    }
+
+    private func normalizedNumberString(_ text: String) -> String {
+        let noSpaces = text.replacingOccurrences(of: " ", with: "")
+        if noSpaces.contains(",") && !noSpaces.contains(".") {
+            return noSpaces.replacingOccurrences(of: ",", with: ".")
+        }
+        return noSpaces
+    }
+
+    func saveLibraryDraft(_ draft: SavedFoodDraft) async -> LibrarySaveResult {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+        do {
+            if let existing = try await savedFoodRepository.fetchFoodByName(draft.name) {
+                return .duplicate(existing: existing, draft: draft)
+            }
+            try await savedFoodRepository.insertFood(draft)
+            return .saved
+        } catch {
+            errorMessage = "Unable to save to Library: \(error.localizedDescription)"
+            return .failed
+        }
+    }
+
+    func resolveLibraryDuplicate(
+        choice: LibraryDuplicateChoice,
+        existing: SavedFood,
+        draft: SavedFoodDraft
+    ) async -> Bool {
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+        do {
+            switch choice {
+            case .updateExisting:
+                try await savedFoodRepository.updateFood(id: existing.id, draft: draft)
+            case .createNew:
+                try await savedFoodRepository.insertFood(draft)
+            }
+            return true
+        } catch {
+            errorMessage = "Unable to save to Library: \(error.localizedDescription)"
             return false
         }
     }
@@ -151,6 +300,42 @@ final class AddLogViewModel: ObservableObject {
         isAnalyzing = false
         isSaving = false
         errorMessage = nil
+        analysisStage = .idle
+        streamPreview = ""
+        streamBuffer = ""
+        isLabelPhoto = false
+    }
+
+    func clearPhoto() {
+        selectedItem = nil
+        selectedImageData = nil
+        pendingEntryId = nil
+        pendingImagePath = nil
+        isLabelPhoto = false
+    }
+
+    func applySavedFood(_ selection: SavedFoodSelection) {
+        let totals = selection.food.macros(for: selection.quantity)
+        estimate = MacroEstimate(
+            calories: Double(totals.calories),
+            protein: Double(totals.protein),
+            carbs: Double(totals.carbs),
+            fat: Double(totals.fat),
+            confidence: nil,
+            source: "text",
+            foodName: selection.food.name,
+            notes: "Saved food"
+        )
+        caloriesText = String(totals.calories)
+        proteinText = String(totals.protein)
+        carbsText = String(totals.carbs)
+        fatText = String(totals.fat)
+        inputText = selection.food.name
+        analysisStage = .idle
+        streamPreview = ""
+        streamBuffer = ""
+        errorMessage = nil
+        clearPhoto()
     }
 
     private func resolvedActiveDate(for userId: UUID) async throws -> String {
@@ -173,7 +358,10 @@ final class AddLogViewModel: ObservableObject {
     }()
 
     private var analysisInputType: String {
-        resolvedInputType.databaseValue
+        if isLabelPhoto, selectedImageData != nil || pendingImagePath != nil {
+            return "label_photo"
+        }
+        return resolvedInputType.databaseValue
     }
 
     private var resolvedInputType: LogInputType {
@@ -188,6 +376,129 @@ final class AddLogViewModel: ObservableObject {
             return .text
         case (false, false):
             return .text
+        }
+    }
+
+    private func appendStream(_ delta: String) {
+        streamBuffer.append(delta)
+        let maxBuffer = 2200
+        if streamBuffer.count > maxBuffer {
+            streamBuffer = String(streamBuffer.suffix(maxBuffer))
+        }
+
+        let maxPreview = 480
+        if streamBuffer.count > maxPreview {
+            streamPreview = "..." + streamBuffer.suffix(maxPreview)
+        } else {
+            streamPreview = streamBuffer
+        }
+
+        if let partial = parsePartialEstimate(from: streamBuffer) {
+            if let calories = partial.calories {
+                caloriesText = formatMacro(calories)
+            }
+            if let protein = partial.protein {
+                proteinText = formatMacro(protein)
+            }
+            if let carbs = partial.carbs {
+                carbsText = formatMacro(carbs)
+            }
+            if let fat = partial.fat {
+                fatText = formatMacro(fat)
+            }
+        }
+    }
+
+    private func formatMacro(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 2
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = false
+        if let text = formatter.string(from: NSNumber(value: value)) {
+            return text
+        }
+        return String(value)
+    }
+
+    private func parsePartialEstimate(from text: String) -> PartialEstimate? {
+        PartialEstimate(
+            calories: extractNumber(for: "calories", in: text),
+            protein: extractNumber(for: "protein", in: text),
+            carbs: extractNumber(for: "carbs", in: text),
+            fat: extractNumber(for: "fat", in: text)
+        )
+    }
+
+    private func extractNumber(for key: String, in text: String) -> Double? {
+        let pattern = "\"\(key)\"\\s*:\\s*([0-9]+(?:\\.[0-9]+)?)"
+        guard let regex = try? NSRegularExpression(pattern: pattern) else {
+            return nil
+        }
+        let range = NSRange(text.startIndex..., in: text)
+        guard let match = regex.firstMatch(in: text, range: range),
+              let valueRange = Range(match.range(at: 1), in: text) else {
+            return nil
+        }
+        return Double(text[valueRange])
+    }
+}
+
+enum LibrarySaveResult {
+    case saved
+    case duplicate(existing: SavedFood, draft: SavedFoodDraft)
+    case failed
+}
+
+enum LibraryDuplicateChoice {
+    case updateExisting
+    case createNew
+}
+
+struct PartialEstimate {
+    let calories: Double?
+    let protein: Double?
+    let carbs: Double?
+    let fat: Double?
+}
+
+enum AnalysisStage: String {
+    case idle
+    case preparing
+    case uploading
+    case requestingModel
+    case streaming
+    case finalizing
+
+    init(from stage: String) {
+        switch stage {
+        case "uploading":
+            self = .uploading
+        case "requesting_model":
+            self = .requestingModel
+        case "streaming":
+            self = .streaming
+        case "finalizing":
+            self = .finalizing
+        default:
+            self = .preparing
+        }
+    }
+
+    var title: String {
+        switch self {
+        case .idle:
+            return "Ready"
+        case .preparing:
+            return "Preparing input"
+        case .uploading:
+            return "Uploading photo"
+        case .requestingModel:
+            return "Estimating macros"
+        case .streaming:
+            return "Streaming insights"
+        case .finalizing:
+            return "Finalizing"
         }
     }
 }

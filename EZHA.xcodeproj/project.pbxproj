@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */; };
 		9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */; };
 		9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607352F1A5F5500825D3F /* SessionManager.swift */; };
 		9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073F2F1A5F5500825D3F /* MainTabView.swift */; };
@@ -38,6 +39,13 @@
 		9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */; };
 		9B06078E2F1A5F5500825D3F /* DailySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607902F1A5F5500825D3F /* DailySummary.swift */; };
 		9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */; };
+		9B7A8C012F9A100100000001 /* SavedFood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B012F9A100100000001 /* SavedFood.swift */; };
+		9B7A8C022F9A100100000001 /* SavedFoodRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */; };
+		9B7A8C032F9A100100000001 /* FoodLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */; };
+		9B7A8C042F9A100100000001 /* FoodLibraryView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B042F9A100100000001 /* FoodLibraryView.swift */; };
+		9B7A8C052F9A100100000001 /* FoodEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B052F9A100100000001 /* FoodEditorView.swift */; };
+		9B7A8C062F9A100100000001 /* FoodLibraryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */; };
+		9B7A8C072F9A100100000001 /* SavedFoodRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B072F9A100100000001 /* SavedFoodRow.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -58,6 +66,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpers.swift; sourceTree = "<group>"; };
 		9B06072B2F1A5F5500825D3F /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ai_estimation_contract.md; sourceTree = "<group>"; };
 		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
@@ -92,6 +101,13 @@
 		9B0607862F1A5F5500825D3F /* schema.sql */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.sql; path = schema.sql; sourceTree = "<group>"; };
 		9B0607902F1A5F5500825D3F /* DailySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummary.swift; sourceTree = "<group>"; };
 		9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummaryRepository.swift; sourceTree = "<group>"; };
+		9B7A8B012F9A100100000001 /* SavedFood.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFood.swift; sourceTree = "<group>"; };
+		9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodRepository.swift; sourceTree = "<group>"; };
+		9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryViewModel.swift; sourceTree = "<group>"; };
+		9B7A8B042F9A100100000001 /* FoodLibraryView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryView.swift; sourceTree = "<group>"; };
+		9B7A8B052F9A100100000001 /* FoodEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEditorView.swift; sourceTree = "<group>"; };
+		9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryPickerView.swift; sourceTree = "<group>"; };
+		9B7A8B072F9A100100000001 /* SavedFoodRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodRow.swift; sourceTree = "<group>"; };
 		9BD5BD982F1A59F200593F55 /* Ezha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ezha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BD5BDA52F1A59F400593F55 /* EzhaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BD5BDAF2F1A59F400593F55 /* EzhaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -151,6 +167,7 @@
 				9B0607902F1A5F5500825D3F /* DailySummary.swift */,
 				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
 				9B0607802F1A5F5500825D3F /* Profile.swift */,
+				9B7A8B012F9A100100000001 /* SavedFood.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -172,6 +189,7 @@
 				9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */,
 				9B0607842F1A5F5500825D3F /* Notifications.swift */,
 				9B0607812F1A5F5500825D3F /* ProfileRepository.swift */,
+				9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */,
 				9B0607352F1A5F5500825D3F /* SessionManager.swift */,
 				9B0607832F1A5F5500825D3F /* StorageService.swift */,
 				9B0607702F1A5F5500825D3F /* SupabaseConfig.swift */,
@@ -183,6 +201,7 @@
 			isa = PBXGroup;
 			children = (
 				9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */,
+				9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */,
 				9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */,
 				9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */,
 				9B0607392F1A5F5500825D3F /* TodayViewModel.swift */,
@@ -195,10 +214,15 @@
 			children = (
 				9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */,
 				9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */,
+				9B7A8B052F9A100100000001 /* FoodEditorView.swift */,
+				9B7A8B042F9A100100000001 /* FoodLibraryView.swift */,
+				9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */,
 				9B06073D2F1A5F5500825D3F /* HistoryView.swift */,
+				9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */,
 				9B06073E2F1A5F5500825D3F /* MacroProgressTable.swift */,
 				9B06073F2F1A5F5500825D3F /* MainTabView.swift */,
 				9B0607402F1A5F5500825D3F /* RootView.swift */,
+				9B7A8B072F9A100100000001 /* SavedFoodRow.swift */,
 				9B0607412F1A5F5500825D3F /* SettingsView.swift */,
 				9B0607422F1A5F5500825D3F /* TodayView.swift */,
 			);
@@ -422,28 +446,36 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */,
 				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
 				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
 				9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */,
 				9B0607892F1A5F5500825D3F /* ProfileRepository.swift in Sources */,
 				9B06078A2F1A5F5500825D3F /* FoodEntryRepository.swift in Sources */,
+				9B7A8C022F9A100100000001 /* SavedFoodRepository.swift in Sources */,
 				9B06078B2F1A5F5500825D3F /* StorageService.swift in Sources */,
 				9B06078C2F1A5F5500825D3F /* Notifications.swift in Sources */,
 				9B0607712F1A5F5500825D3F /* SupabaseConfig.swift in Sources */,
 				9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */,
+				9B7A8C042F9A100100000001 /* FoodLibraryView.swift in Sources */,
+				9B7A8C062F9A100100000001 /* FoodLibraryPickerView.swift in Sources */,
 				9B06074E2F1A5F5500825D3F /* TodayView.swift in Sources */,
 				9B06074F2F1A5F5500825D3F /* FoodLogStore.swift in Sources */,
 				9B0607502F1A5F5500825D3F /* AddLogViewModel.swift in Sources */,
+				9B7A8C032F9A100100000001 /* FoodLibraryViewModel.swift in Sources */,
 				9B0607512F1A5F5500825D3F /* SettingsView.swift in Sources */,
 				9B0607522F1A5F5500825D3F /* AuthLandingView.swift in Sources */,
 				9B0607532F1A5F5500825D3F /* HistoryViewModel.swift in Sources */,
 				9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */,
 				9B0607542F1A5F5500825D3F /* RootView.swift in Sources */,
 				9B0607552F1A5F5500825D3F /* FoodEntry.swift in Sources */,
+				9B7A8C012F9A100100000001 /* SavedFood.swift in Sources */,
 				9B06078E2F1A5F5500825D3F /* DailySummary.swift in Sources */,
 				9B0607882F1A5F5500825D3F /* Profile.swift in Sources */,
 				9B0607562F1A5F5500825D3F /* AddLogSheet.swift in Sources */,
+				9B7A8C052F9A100100000001 /* FoodEditorView.swift in Sources */,
 				9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */,
+				9B7A8C072F9A100100000001 /* SavedFoodRow.swift in Sources */,
 				9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */,
 				9B0607592F1A5F5500825D3F /* EZHAApp.swift in Sources */,
 				9B06075A2F1A5F5500825D3F /* MacroProgressTable.swift in Sources */,

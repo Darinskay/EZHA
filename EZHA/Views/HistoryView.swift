@@ -30,6 +30,8 @@ struct HistoryView: View {
                 ProgressView()
             }
         }
+        .dismissKeyboardOnTap()
+        .keyboardDoneToolbar()
         .task {
             await viewModel.loadHistory()
         }

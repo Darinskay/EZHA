@@ -42,7 +42,7 @@ struct TodayView: View {
                         .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.borderedProminent)
-                    .tint(.blue)
+                    .tint(Color(red: 0.8, green: 0.2, blue: 0.6))
                     .foregroundStyle(.white)
                     .disabled(viewModel.isLoading)
 
@@ -98,6 +98,8 @@ struct TodayView: View {
                 }
             }
         }
+        .dismissKeyboardOnTap()
+        .keyboardDoneToolbar()
         .sheet(isPresented: $isPresentingAddLog) {
             AddLogSheet()
         }
@@ -121,24 +123,105 @@ private struct TodayEntryRow: View {
     let entry: FoodEntry
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text(entry.inputText ?? "Meal")
-                .font(.headline)
-            Text(
-                "Calories: \(Int(entry.calories))  Protein: \(Int(entry.protein))g  Carbs: \(Int(entry.carbs))g  Fat: \(Int(entry.fat))g"
-            )
-                .font(.subheadline)
-                .foregroundColor(.secondary)
-            if entry.imagePath != nil {
-                Text("Photo attached")
-                    .font(.caption)
-                    .foregroundColor(.secondary)
+        VStack(alignment: .leading, spacing: 8) {
+            HStack(alignment: .firstTextBaseline, spacing: 12) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(entryTitle)
+                        .font(.headline)
+                        .lineLimit(1)
+                    HStack(spacing: 8) {
+                        Text(TimeLabelFormatter.label(from: entry.createdAt))
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                        if entry.imagePath != nil {
+                            TagView(text: "Photo", systemImage: "photo")
+                        }
+                    }
+                }
+                Spacer(minLength: 12)
+                VStack(alignment: .trailing, spacing: 2) {
+                    Text("\(Int(entry.calories))")
+                        .font(.title3)
+                        .fontWeight(.semibold)
+                    Text("kcal")
+                        .font(.caption)
+                        .foregroundColor(.secondary)
+                }
             }
-            Text(TimeLabelFormatter.label(from: entry.createdAt))
-                .font(.caption)
-                .foregroundColor(.secondary)
+
+            HStack(spacing: 6) {
+                MacroChip(label: "P", value: entry.protein, tint: .orange)
+                MacroChip(label: "C", value: entry.carbs, tint: .blue)
+                MacroChip(label: "F", value: entry.fat, tint: .pink)
+                Spacer(minLength: 0)
+                if let confidenceLabel {
+                    TagView(text: confidenceLabel, systemImage: "sparkles")
+                }
+                TagView(text: sourceLabel)
+            }
+        }
+        .padding(.vertical, 6)
+    }
+
+    private var entryTitle: String {
+        let trimmed = entry.inputText?.trimmingCharacters(in: .whitespacesAndNewlines)
+        return (trimmed?.isEmpty == false) ? trimmed ?? "Meal" : "Meal"
+    }
+
+    private var confidenceLabel: String? {
+        guard let confidence = entry.aiConfidence else { return nil }
+        let percent = Int((confidence * 100).rounded())
+        return "AI \(percent)%"
+    }
+
+    private var sourceLabel: String {
+        switch entry.aiSource {
+        case "food_photo":
+            return "Food photo"
+        case "label_photo":
+            return "Label photo"
+        default:
+            return "Unknown source"
+        }
+    }
+}
+
+private struct MacroChip: View {
+    let label: String
+    let value: Double
+    let tint: Color
+
+    var body: some View {
+        HStack(spacing: 4) {
+            Text(label)
+                .font(.caption2)
+                .fontWeight(.semibold)
+            Text("\(Int(value))g")
+                .font(.caption2)
         }
         .padding(.vertical, 4)
+        .padding(.horizontal, 8)
+        .foregroundColor(tint)
+        .background(tint.opacity(0.12), in: Capsule())
+    }
+}
+
+private struct TagView: View {
+    let text: String
+    var systemImage: String? = nil
+
+    var body: some View {
+        HStack(spacing: 4) {
+            if let systemImage {
+                Image(systemName: systemImage)
+            }
+            Text(text)
+        }
+        .font(.caption2)
+        .foregroundColor(.secondary)
+        .padding(.vertical, 3)
+        .padding(.horizontal, 8)
+        .background(Color.secondary.opacity(0.12), in: Capsule())
     }
 }
 

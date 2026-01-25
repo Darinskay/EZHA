@@ -72,11 +72,12 @@ enum LogInputType: String, CaseIterable, Identifiable {
 }
 
 struct MacroEstimate: Hashable {
-    var calories: Int
-    var protein: Int
-    var carbs: Int
-    var fat: Int
+    var calories: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
     var confidence: Double?
     var source: String
+    var foodName: String?
     var notes: String
 }

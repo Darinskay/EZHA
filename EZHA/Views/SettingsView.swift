@@ -41,7 +41,7 @@ struct SettingsView: View {
                     Section {
                         Text(saveMessage)
                             .font(.footnote)
-                            .foregroundColor(.green)
+                            .foregroundColor(Color(red: 0.8, green: 0.2, blue: 0.6))
                     }
                 }
 
@@ -64,8 +64,10 @@ struct SettingsView: View {
                 }
             }
             .navigationTitle("Settings")
-            .dismissKeyboardOnTap()
+            .scrollDismissesKeyboard(.interactively)
         }
+        .dismissKeyboardOnTap()
+        .keyboardDoneToolbar()
         .task {
             await viewModel.loadTargets()
         }

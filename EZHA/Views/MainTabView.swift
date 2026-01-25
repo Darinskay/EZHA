@@ -7,6 +7,10 @@ struct MainTabView: View {
                 .tabItem {
                     Label("Today", systemImage: "sun.max")
                 }
+            FoodLibraryView()
+                .tabItem {
+                    Label("Library", systemImage: "bookmark")
+                }
             HistoryView()
                 .tabItem {
                     Label("History", systemImage: "calendar")

@@ -103,7 +103,7 @@ struct AuthLandingView: View {
                         }
                         .buttonStyle(.plain)
                         .frame(height: 48)
-                        .background(Color.accentColor, in: RoundedRectangle(cornerRadius: 16))
+                        .background(.linearGradient(colors: [Color(red: 0.9, green: 0.4, blue: 0.8), Color(red: 0.5, green: 0.2, blue: 0.7)], startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: 16))
                         .foregroundColor(.white)
 
                         Button {
@@ -151,7 +151,9 @@ struct AuthLandingView: View {
         .onAppear {
             hasAppeared = true
         }
+        .scrollDismissesKeyboard(.interactively)
         .dismissKeyboardOnTap()
+        .keyboardDoneToolbar()
     }
 
     private func triggerHaptic() {
