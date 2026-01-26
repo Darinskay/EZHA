@@ -3,6 +3,7 @@ import SwiftUI
 struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
     @State private var isPresentingAddLog = false
+    @State private var isPresentingLogMeal = false
     @State private var entryPendingDelete: FoodEntry?
     @State private var isShowingDeleteConfirm = false
 
@@ -44,6 +45,19 @@ struct TodayView: View {
                     .buttonStyle(.borderedProminent)
                     .tint(Color(red: 0.8, green: 0.2, blue: 0.6))
                     .foregroundStyle(.white)
+                    .disabled(viewModel.isLoading)
+
+                    Button {
+                        isPresentingLogMeal = true
+                    } label: {
+                        HStack {
+                            Image(systemName: "fork.knife")
+                                .imageScale(.large)
+                            Text("Log meal")
+                        }
+                        .frame(maxWidth: .infinity, minHeight: 44)
+                    }
+                    .buttonStyle(.bordered)
                     .disabled(viewModel.isLoading)
 
                     Button {
@@ -102,6 +116,9 @@ struct TodayView: View {
         .keyboardDoneToolbar()
         .sheet(isPresented: $isPresentingAddLog) {
             AddLogSheet()
+        }
+        .sheet(isPresented: $isPresentingLogMeal) {
+            LogMealSheet()
         }
         .task {
             await viewModel.loadToday()

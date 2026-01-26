@@ -16,7 +16,7 @@ struct SavedFoodQuickState: Hashable {
 
 @MainActor
 final class AddLogViewModel: ObservableObject {
-    @Published var entryMode: LogEntryMode = .list
+    @Published var entryMode: LogEntryMode = .description
     @Published var descriptionText: String = ""
     @Published var items: [FoodItemDraft] = [FoodItemDraft()]
     @Published var selectedItem: PhotosPickerItem? = nil
@@ -32,15 +32,26 @@ final class AddLogViewModel: ObservableObject {
     @Published var analysisStage: AnalysisStage = .idle
     @Published var streamPreview: String = ""
     @Published var isLabelPhoto: Bool = false
+    @Published var labelGramsText: String = ""
     @Published var savedFoods: [SavedFood] = []
     @Published var savedFoodStates: [UUID: SavedFoodQuickState] = [:]
     @Published var isSavedFoodsLoading: Bool = false
     @Published var savedFoodsError: String? = nil
     @Published var savedFoodsSelectionError: String? = nil
+    @Published var searchText: String = ""
+    @Published var filteredLibraryFoods: [SavedFood] = []
+    @Published var isSearchPending: Bool = false
+    @Published var selectedLibraryFood: SavedFood? = nil
+    @Published var libraryFoodQuantityText: String = ""
+    @Published var libraryCalculatedMacros: MacroDoubles? = nil
+    @Published var showSaveToLibrary: Bool = false
 
     private var pendingEntryId: UUID? = nil
     private var pendingImagePath: String? = nil
     private var streamBuffer: String = ""
+    private var searchDebounceTask: Task<Void, Never>? = nil
+    private var labelBaseEstimate: MacroEstimate? = nil
+    private var isApplyingLabelScale: Bool = false
     @Published private(set) var savedFoodsEstimateActive: Bool = false
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
@@ -69,6 +80,10 @@ final class AddLogViewModel: ObservableObject {
         let hasText = hasTextInput
         let hasPhoto = selectedImageData != nil || pendingImagePath != nil
         return !isAnalyzing && (hasText || hasPhoto)
+    }
+
+    var isLibrarySelectionActive: Bool {
+        selectedLibraryFood != nil
     }
 
     func loadSelectedImage() async {
@@ -103,6 +118,7 @@ final class AddLogViewModel: ObservableObject {
         proteinText = ""
         carbsText = ""
         fatText = ""
+        showSaveToLibrary = false
         defer { isAnalyzing = false }
         do {
             let itemInputs = validatedItemInputs(
@@ -149,6 +165,11 @@ final class AddLogViewModel: ObservableObject {
                     carbsText = formatMacro(result.carbs)
                     fatText = formatMacro(result.fat)
                     streamPreview = ""
+                    showSaveToLibrary = true
+                    if isLabelPhoto {
+                        labelBaseEstimate = result
+                        applyLabelScaling()
+                    }
                 case .error(let message):
                     throw AnalysisError.remote(message)
                 }
@@ -168,6 +189,11 @@ final class AddLogViewModel: ObservableObject {
                 fatText = formatMacro(fallback.fat)
                 streamPreview = ""
                 analysisStage = .idle
+                showSaveToLibrary = true
+                if isLabelPhoto {
+                    labelBaseEstimate = fallback
+                    applyLabelScaling()
+                }
             }
         } catch {
             errorMessage = error.localizedDescription
@@ -176,6 +202,9 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func saveEntry() async -> Bool {
+        if let selectedLibraryFood {
+            return await saveLibrarySelection(selectedLibraryFood)
+        }
         guard let calories = parseMacro(caloriesText),
               let protein = parseMacro(proteinText),
               let carbs = parseMacro(carbsText),
@@ -242,6 +271,9 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func suggestedFoodName() -> String {
+        if let selectedLibraryFood {
+            return selectedLibraryFood.name
+        }
         let itemNames = items
             .map { $0.name.trimmingCharacters(in: .whitespacesAndNewlines) }
             .filter { !$0.isEmpty }
@@ -274,12 +306,22 @@ final class AddLogViewModel: ObservableObject {
             errorMessage = "Please enter a food name to save to Library."
             return nil
         }
-        guard let calories = parseMacro(caloriesText),
-              let protein = parseMacro(proteinText),
-              let carbs = parseMacro(carbsText),
-              let fat = parseMacro(fatText) else {
+        guard var calories = parseMacro(caloriesText),
+              var protein = parseMacro(proteinText),
+              var carbs = parseMacro(carbsText),
+              var fat = parseMacro(fatText) else {
             errorMessage = "Please enter valid macro values."
             return nil
+        }
+
+        if isLabelPhoto, let grams = parseMacro(labelGramsText), grams > 0 {
+            let multiplier = grams / 100.0
+            if multiplier > 0 {
+                calories = calories / multiplier
+                protein = protein / multiplier
+                carbs = carbs / multiplier
+                fat = fat / multiplier
+            }
         }
 
         return SavedFoodDraft(
@@ -422,7 +464,7 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func reset() {
-        entryMode = .list
+        entryMode = .description
         descriptionText = ""
         items = [FoodItemDraft()]
         selectedItem = nil
@@ -441,10 +483,19 @@ final class AddLogViewModel: ObservableObject {
         streamPreview = ""
         streamBuffer = ""
         isLabelPhoto = false
+        labelGramsText = ""
+        labelBaseEstimate = nil
         savedFoodsError = nil
         savedFoodsSelectionError = nil
         savedFoodsEstimateActive = false
         savedFoodStates = buildSavedFoodStates(for: savedFoods)
+        searchText = ""
+        filteredLibraryFoods = []
+        isSearchPending = false
+        selectedLibraryFood = nil
+        libraryFoodQuantityText = ""
+        libraryCalculatedMacros = nil
+        showSaveToLibrary = false
     }
 
     func clearPhoto() {
@@ -453,6 +504,138 @@ final class AddLogViewModel: ObservableObject {
         pendingEntryId = nil
         pendingImagePath = nil
         isLabelPhoto = false
+        labelGramsText = ""
+        labelBaseEstimate = nil
+    }
+
+    func searchLibraryFoods(_ query: String) {
+        searchDebounceTask?.cancel()
+        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else {
+            filteredLibraryFoods = []
+            isSearchPending = false
+            return
+        }
+
+        isSearchPending = true
+        searchDebounceTask = Task { @MainActor in
+            try? await Task.sleep(nanoseconds: 300_000_000)
+            guard !Task.isCancelled else { return }
+
+            if savedFoods.isEmpty && !isSavedFoodsLoading {
+                await loadSavedFoods()
+            }
+            let lowered = trimmed.lowercased()
+            filteredLibraryFoods = savedFoods.filter { food in
+                food.name.lowercased().contains(lowered)
+            }
+            isSearchPending = false
+        }
+    }
+
+    func selectLibraryFood(_ food: SavedFood) {
+        selectedLibraryFood = food
+        searchText = ""
+        filteredLibraryFoods = []
+        isSearchPending = false
+        libraryFoodQuantityText = ""
+        libraryCalculatedMacros = nil
+        descriptionText = ""
+        items = [FoodItemDraft()]
+        entryMode = .description
+        estimate = nil
+        showSaveToLibrary = false
+        errorMessage = nil
+    }
+
+    func clearLibrarySelection() {
+        selectedLibraryFood = nil
+        libraryFoodQuantityText = ""
+        libraryCalculatedMacros = nil
+        estimate = nil
+        showSaveToLibrary = false
+        isSearchPending = false
+    }
+
+    func calculateLibraryMacros() {
+        guard let selectedLibraryFood else {
+            libraryCalculatedMacros = nil
+            return
+        }
+        guard let quantity = parseMacro(libraryFoodQuantityText), quantity > 0 else {
+            libraryCalculatedMacros = nil
+            return
+        }
+        libraryCalculatedMacros = selectedLibraryFood.macroDoubles(for: quantity)
+    }
+
+    func analyzeQuickText() async {
+        guard applySearchTextToInputs() else { return }
+        searchText = ""
+        filteredLibraryFoods = []
+        isSearchPending = false
+        selectedLibraryFood = nil
+        showSaveToLibrary = false
+
+        await analyze()
+    }
+
+    func handleLabelToggle(_ isOn: Bool) {
+        if !isOn {
+            if let base = labelBaseEstimate {
+                updateEstimateFromBase(base)
+            }
+            labelGramsText = ""
+            labelBaseEstimate = nil
+        }
+    }
+
+    func applyLabelScaling() {
+        guard !isApplyingLabelScale else { return }
+        guard isLabelPhoto else { return }
+        guard let grams = parseMacro(labelGramsText), grams > 0 else { return }
+        let multiplier = grams / 100.0
+        guard multiplier > 0 else { return }
+
+        let base = labelBaseEstimate ?? estimateFromCurrentFields()
+        guard let base else { return }
+
+        isApplyingLabelScale = true
+        let scaled = MacroEstimate(
+            calories: base.calories * multiplier,
+            protein: base.protein * multiplier,
+            carbs: base.carbs * multiplier,
+            fat: base.fat * multiplier,
+            confidence: base.confidence,
+            source: base.source,
+            foodName: base.foodName,
+            notes: base.notes,
+            items: base.items
+        )
+        updateEstimateFromBase(scaled)
+        isApplyingLabelScale = false
+    }
+
+    func enableManualEntry() {
+        estimate = MacroEstimate(
+            calories: 0,
+            protein: 0,
+            carbs: 0,
+            fat: 0,
+            confidence: nil,
+            source: "manual",
+            foodName: nil,
+            notes: "Manual entry",
+            items: []
+        )
+        caloriesText = ""
+        proteinText = ""
+        carbsText = ""
+        fatText = ""
+        showSaveToLibrary = true
+        errorMessage = nil
+        analysisStage = .idle
+        streamPreview = ""
     }
 
     func addItemRow() {
@@ -588,6 +771,45 @@ final class AddLogViewModel: ObservableObject {
         return true
     }
 
+    private func saveLibrarySelection(_ food: SavedFood) async -> Bool {
+        guard let quantity = parseMacro(libraryFoodQuantityText), quantity > 0 else {
+            errorMessage = "Please enter a valid quantity."
+            return false
+        }
+        let macros = food.macroDoubles(for: quantity)
+        isSaving = true
+        errorMessage = nil
+        defer { isSaving = false }
+
+        do {
+            let userId = try await SupabaseConfig.currentUserId()
+            let entryId = UUID()
+            let activeDate = try await resolvedActiveDate(for: userId)
+            let entry = FoodEntry(
+                id: entryId,
+                userId: userId,
+                date: activeDate,
+                inputType: LogInputType.text.databaseValue,
+                inputText: food.name,
+                imagePath: nil,
+                calories: macros.calories,
+                protein: macros.protein,
+                carbs: macros.carbs,
+                fat: macros.fat,
+                aiConfidence: nil,
+                aiSource: "library",
+                aiNotes: "From saved library",
+                createdAt: nil
+            )
+
+            try await entryRepository.insertFoodEntry(entry, items: [])
+            return true
+        } catch {
+            errorMessage = "Unable to save entry: \(error.localizedDescription)"
+            return false
+        }
+    }
+
     private func resolvedActiveDate(for userId: UUID) async throws -> String {
         if let profile = try await profileRepository.fetchProfile() {
             return profile.activeDate
@@ -699,7 +921,9 @@ final class AddLogViewModel: ObservableObject {
         case .list:
             return hasItemInput
         case .description:
-            return !descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let hasDescription = !descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            let hasSearchText = !searchText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+            return hasDescription || hasSearchText
         }
     }
 
@@ -747,6 +971,79 @@ final class AddLogViewModel: ObservableObject {
         }
 
         return inputs
+    }
+
+    private func parseQuickTextFormat(_ text: String) -> (name: String, grams: Double)? {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return nil }
+
+        let patterns: [(pattern: String, nameIndex: Int, gramsIndex: Int)] = [
+            (#"^(.+?)\s+(\d+(?:\.\d+)?)\s*g?$"#, 1, 2),
+            (#"^(\d+(?:\.\d+)?)\s*g?\s+(.+)$"#, 2, 1)
+        ]
+
+        for pattern in patterns {
+            guard let regex = try? NSRegularExpression(pattern: pattern.pattern, options: [.caseInsensitive]) else {
+                continue
+            }
+            let range = NSRange(trimmed.startIndex..., in: trimmed)
+            guard let match = regex.firstMatch(in: trimmed, range: range) else { continue }
+            guard let nameRange = Range(match.range(at: pattern.nameIndex), in: trimmed),
+                  let gramsRange = Range(match.range(at: pattern.gramsIndex), in: trimmed) else {
+                continue
+            }
+            let name = String(trimmed[nameRange]).trimmingCharacters(in: .whitespacesAndNewlines)
+            let gramsText = String(trimmed[gramsRange])
+            guard let grams = Double(gramsText), grams > 0 else { continue }
+            guard !name.isEmpty else { continue }
+            return (name: name, grams: grams)
+        }
+
+        return nil
+    }
+
+    private func estimateFromCurrentFields() -> MacroEstimate? {
+        guard let calories = parseMacro(caloriesText),
+              let protein = parseMacro(proteinText),
+              let carbs = parseMacro(carbsText),
+              let fat = parseMacro(fatText) else {
+            return nil
+        }
+        return MacroEstimate(
+            calories: calories,
+            protein: protein,
+            carbs: carbs,
+            fat: fat,
+            confidence: estimate?.confidence,
+            source: estimate?.source ?? "manual",
+            foodName: estimate?.foodName,
+            notes: estimate?.notes ?? "",
+            items: estimate?.items ?? []
+        )
+    }
+
+    private func updateEstimateFromBase(_ base: MacroEstimate) {
+        estimate = base
+        caloriesText = formatMacro(base.calories)
+        proteinText = formatMacro(base.protein)
+        carbsText = formatMacro(base.carbs)
+        fatText = formatMacro(base.fat)
+    }
+
+    @discardableResult
+    func applySearchTextToInputs() -> Bool {
+        let query = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !query.isEmpty else { return false }
+
+        if let parsed = parseQuickTextFormat(query) {
+            entryMode = .list
+            items = [FoodItemDraft(name: parsed.name, gramsText: formatMacro(parsed.grams))]
+            descriptionText = ""
+        } else {
+            entryMode = .description
+            descriptionText = query
+        }
+        return true
     }
 
     private func buildEntryItems(
