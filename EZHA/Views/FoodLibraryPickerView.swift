@@ -92,7 +92,7 @@ private struct FoodQuantityView: View {
             }
         }
         .onAppear {
-            quantityText = food.unitType == .per100g ? "100" : "1"
+            quantityText = "100"
         }
     }
 

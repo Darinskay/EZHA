@@ -41,7 +41,7 @@ final class AddLogViewModel: ObservableObject {
     private var pendingEntryId: UUID? = nil
     private var pendingImagePath: String? = nil
     private var streamBuffer: String = ""
-    private var savedFoodsEstimateActive: Bool = false
+    @Published private(set) var savedFoodsEstimateActive: Bool = false
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
     private let profileRepository: ProfileRepository
@@ -63,6 +63,9 @@ final class AddLogViewModel: ObservableObject {
     }
 
     var canAnalyze: Bool {
+        if selectedSavedFoodCount > 0 || savedFoodsEstimateActive {
+            return !isAnalyzing
+        }
         let hasText = hasTextInput
         let hasPhoto = selectedImageData != nil || pendingImagePath != nil
         return !isAnalyzing && (hasText || hasPhoto)
@@ -83,6 +86,13 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func analyze() async {
+        if selectedSavedFoodCount > 0 {
+            _ = analyzeSavedFoodsSelection()
+            return
+        }
+        if savedFoodsEstimateActive {
+            return
+        }
         isAnalyzing = true
         errorMessage = nil
         analysisStage = .preparing
@@ -334,30 +344,34 @@ final class AddLogViewModel: ObservableObject {
     }
 
     private func updateEstimateFromSavedFoods(using selections: [(food: SavedFood, quantity: Double)]) {
-        let totals = selections.reduce(into: MacroTotals.zero) { partial, item in
-            let totals = item.food.macros(for: item.quantity)
-            partial.calories += totals.calories
-            partial.protein += totals.protein
-            partial.carbs += totals.carbs
-            partial.fat += totals.fat
+        let totals = selections.reduce(
+            into: MacroDoubles(calories: 0, protein: 0, carbs: 0, fat: 0)
+        ) { partial, item in
+            let totals = item.food.macroDoubles(for: item.quantity)
+            partial = MacroDoubles(
+                calories: partial.calories + totals.calories,
+                protein: partial.protein + totals.protein,
+                carbs: partial.carbs + totals.carbs,
+                fat: partial.fat + totals.fat
+            )
         }
 
         let name = selections.map { $0.food.name }.joined(separator: " + ")
         estimate = MacroEstimate(
-            calories: Double(totals.calories),
-            protein: Double(totals.protein),
-            carbs: Double(totals.carbs),
-            fat: Double(totals.fat),
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat,
             confidence: nil,
-            source: "text",
+            source: "library",
             foodName: name,
             notes: "Saved foods",
             items: []
         )
-        caloriesText = String(totals.calories)
-        proteinText = String(totals.protein)
-        carbsText = String(totals.carbs)
-        fatText = String(totals.fat)
+        caloriesText = formatMacro(totals.calories)
+        proteinText = formatMacro(totals.protein)
+        carbsText = formatMacro(totals.carbs)
+        fatText = formatMacro(totals.fat)
         entryMode = .description
         descriptionText = name
         items = [FoodItemDraft()]
@@ -453,22 +467,22 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func applySavedFood(_ selection: SavedFoodSelection) {
-        let totals = selection.food.macros(for: selection.quantity)
+        let totals = selection.food.macroDoubles(for: selection.quantity)
         estimate = MacroEstimate(
-            calories: Double(totals.calories),
-            protein: Double(totals.protein),
-            carbs: Double(totals.carbs),
-            fat: Double(totals.fat),
+            calories: totals.calories,
+            protein: totals.protein,
+            carbs: totals.carbs,
+            fat: totals.fat,
             confidence: nil,
-            source: "text",
+            source: "library",
             foodName: selection.food.name,
             notes: "Saved food",
             items: []
         )
-        caloriesText = String(totals.calories)
-        proteinText = String(totals.protein)
-        carbsText = String(totals.carbs)
-        fatText = String(totals.fat)
+        caloriesText = formatMacro(totals.calories)
+        proteinText = formatMacro(totals.protein)
+        carbsText = formatMacro(totals.carbs)
+        fatText = formatMacro(totals.fat)
         entryMode = .description
         descriptionText = selection.food.name
         items = [FoodItemDraft()]
@@ -476,6 +490,7 @@ final class AddLogViewModel: ObservableObject {
         streamPreview = ""
         streamBuffer = ""
         errorMessage = nil
+        savedFoodsEstimateActive = true
         clearPhoto()
     }
 

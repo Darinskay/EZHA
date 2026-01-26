@@ -33,6 +33,17 @@ private struct MacroRow: View {
         return Double(eaten) / Double(target)
     }
 
+    private var percentageTextColor: Color {
+        let percent = Int((percentage * 100).rounded())
+        if percent >= 101 {
+            return .red
+        }
+        if percent >= 81 {
+            return .green
+        }
+        return .secondary
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -41,7 +52,7 @@ private struct MacroRow: View {
                 Spacer()
                 Text("\(Int(percentage * 100))%")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(percentageTextColor)
             }
             HStack {
                 Text("Target: \(target)\(unit)")

@@ -176,10 +176,16 @@ private struct TodayEntryRow: View {
 
     private var sourceLabel: String {
         switch entry.aiSource {
+        case "library":
+            return "Library"
+        case "text":
+            return "AI: text description"
         case "food_photo":
-            return "Food photo"
+            return "AI: photo"
         case "label_photo":
-            return "Label photo"
+            return "AI: photo"
+        case "unknown":
+            return entry.imagePath != nil ? "AI: photo" : "AI: text description"
         default:
             return "Unknown source"
         }

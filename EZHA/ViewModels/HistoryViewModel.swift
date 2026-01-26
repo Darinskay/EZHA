@@ -90,42 +90,9 @@ final class HistoryViewModel: ObservableObject {
         startDate: Date,
         endDate: Date
     ) -> [DailySummary] {
-        let calendar = Calendar.current
-        var summaryByDate: [String: DailySummary] = [:]
-        for summary in summaries {
-            summaryByDate[summary.date] = summary
-        }
-        let fallbackUserId = summaries.first?.userId ?? UUID()
-
-        var results: [DailySummary] = []
-        var day = startDate
-        while day <= endDate {
-            let dateString = dateFormatter.string(from: day)
-            if let summary = summaryByDate[dateString] {
-                results.append(summary)
-            } else {
-                results.append(
-                    DailySummary(
-                        userId: fallbackUserId,
-                        date: dateString,
-                        calories: 0,
-                        protein: 0,
-                        carbs: 0,
-                        fat: 0,
-                        caloriesTarget: 0,
-                        proteinTarget: 0,
-                        carbsTarget: 0,
-                        fatTarget: 0,
-                        hasData: false,
-                        createdAt: nil
-                    )
-                )
-            }
-            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
-            day = next
-        }
-
-        return results.reversed()
+        summaries
+            .filter { $0.hasData }
+            .sorted { $0.date > $1.date }
     }
 
     static func dateFromString(_ value: String) -> Date? {

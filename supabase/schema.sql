@@ -26,7 +26,7 @@ create table if not exists public.food_entries (
     carbs numeric not null default 0,
     fat numeric not null default 0,
     ai_confidence numeric check (ai_confidence between 0 and 1),
-    ai_source text not null default 'unknown' check (ai_source in ('food_photo', 'label_photo', 'text', 'unknown')),
+    ai_source text not null default 'unknown' check (ai_source in ('food_photo', 'label_photo', 'text', 'unknown', 'library')),
     ai_notes text not null default '',
     created_at timestamptz not null default now()
 );

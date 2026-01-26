@@ -54,7 +54,7 @@ struct AddLogSheet: View {
 
                         if viewModel.estimate != nil {
                             estimateCard
-                            if mode == .log {
+                            if mode == .log, shouldShowLibrarySaveCard {
                                 librarySaveCard
                             }
                             if mode == .log {
@@ -107,6 +107,16 @@ struct AddLogSheet: View {
             .onChange(of: saveToLibrary) { _, isOn in
                 guard isOn, !libraryNameEdited else { return }
                 libraryName = viewModel.suggestedFoodName()
+            }
+            .onChange(of: viewModel.savedFoodsEstimateActive) { _, isActive in
+                if isActive {
+                    saveToLibrary = false
+                }
+            }
+            .onChange(of: viewModel.selectedSavedFoodCount) { _, count in
+                if count > 0 {
+                    saveToLibrary = false
+                }
             }
             .sheet(isPresented: $isSavedFoodsPresented) {
                 SavedFoodQuickAddSheet(viewModel: viewModel)
@@ -472,6 +482,10 @@ struct AddLogSheet: View {
         }
         .modifier(CardModifier())
         .opacity(saveToLibrary ? 1 : 0)
+    }
+
+    private var shouldShowLibrarySaveCard: Bool {
+        !viewModel.savedFoodsEstimateActive && viewModel.selectedSavedFoodCount == 0
     }
     private var saveButton: some View {
         Button {

@@ -69,12 +69,7 @@ enum FoodUnitType: String, CaseIterable, Identifiable, Codable {
     }
 
     var quantityLabel: String {
-        switch self {
-        case .per100g:
-            return "Grams"
-        case .perServing:
-            return "Servings"
-        }
+        "Grams"
     }
 }
 
@@ -85,25 +80,25 @@ struct SavedFoodSelection {
 
 extension SavedFood {
     func macros(for quantity: Double) -> MacroTotals {
-        switch unitType {
-        case .per100g:
-            let multiplier = quantity / 100.0
-            return MacroTotals(
-                calories: Int(round(caloriesPer100g * multiplier)),
-                protein: Int(round(proteinPer100g * multiplier)),
-                carbs: Int(round(carbsPer100g * multiplier)),
-                fat: Int(round(fatPer100g * multiplier))
-            )
-        case .perServing:
-            let perServing = resolvedPerServingMacros()
-            let multiplier = quantity
-            return MacroTotals(
-                calories: Int(round(perServing.calories * multiplier)),
-                protein: Int(round(perServing.protein * multiplier)),
-                carbs: Int(round(perServing.carbs * multiplier)),
-                fat: Int(round(perServing.fat * multiplier))
-            )
-        }
+        let per100g = resolvedPer100gMacros()
+        let multiplier = quantity / 100.0
+        return MacroTotals(
+            calories: Int(round(per100g.calories * multiplier)),
+            protein: Int(round(per100g.protein * multiplier)),
+            carbs: Int(round(per100g.carbs * multiplier)),
+            fat: Int(round(per100g.fat * multiplier))
+        )
+    }
+
+    func macroDoubles(for quantity: Double) -> MacroDoubles {
+        let per100g = resolvedPer100gMacros()
+        let multiplier = quantity / 100.0
+        return MacroDoubles(
+            calories: per100g.calories * multiplier,
+            protein: per100g.protein * multiplier,
+            carbs: per100g.carbs * multiplier,
+            fat: per100g.fat * multiplier
+        )
     }
 
     func resolvedPerServingMacros() -> MacroDoubles {
@@ -124,6 +119,28 @@ extension SavedFood {
             protein: proteinPer100g * multiplier,
             carbs: carbsPer100g * multiplier,
             fat: fatPer100g * multiplier
+        )
+    }
+
+    func resolvedPer100gMacros() -> MacroDoubles {
+        if caloriesPer100g > 0 || proteinPer100g > 0 || carbsPer100g > 0 || fatPer100g > 0 {
+            return MacroDoubles(
+                calories: caloriesPer100g,
+                protein: proteinPer100g,
+                carbs: carbsPer100g,
+                fat: fatPer100g
+            )
+        }
+        guard let servingSize, servingSize > 0 else {
+            return MacroDoubles(calories: 0, protein: 0, carbs: 0, fat: 0)
+        }
+        let perServing = resolvedPerServingMacros()
+        let multiplier = 100.0 / servingSize
+        return MacroDoubles(
+            calories: perServing.calories * multiplier,
+            protein: perServing.protein * multiplier,
+            carbs: perServing.carbs * multiplier,
+            fat: perServing.fat * multiplier
         )
     }
 }
