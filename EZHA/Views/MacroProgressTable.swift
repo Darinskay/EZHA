@@ -12,9 +12,7 @@ struct MacroProgressTable: View {
             MacroRow(label: "Fat", target: targets.fat, eaten: eaten.fat, unit: "g")
         }
         .padding(.vertical, 10)
-        .padding(.horizontal, 12)
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.horizontal, 16)
     }
 }
 

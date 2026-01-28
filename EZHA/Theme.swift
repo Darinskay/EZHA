@@ -1,5 +1,14 @@
 import SwiftUI
 
+// MARK: - App Colors
+// Primary: Magenta - Color(red: 0.8, green: 0.2, blue: 0.6)
+// Secondary: Indigo - .indigo
+
+enum AppColors {
+    static let primary = Color(red: 0.8, green: 0.2, blue: 0.6)
+    static let secondary = Color.indigo
+}
+
 extension LinearGradient {
     static var purpleGradient: LinearGradient {
         LinearGradient(
@@ -14,7 +23,12 @@ extension LinearGradient {
 }
 
 extension Color {
-    static var magentaTheme: Color {
-        Color(red: 0.8, green: 0.2, blue: 0.6)
-    }
+    /// Primary app color - magenta for main action buttons
+    static let appPrimary = Color(red: 0.8, green: 0.2, blue: 0.6)
+    
+    /// Secondary app color - indigo for secondary action buttons
+    static let appSecondary = Color.indigo
+    
+    /// Legacy alias for appPrimary
+    static var magentaTheme: Color { appPrimary }
 }

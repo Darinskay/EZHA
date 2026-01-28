@@ -2,7 +2,6 @@ import SwiftUI
 
 struct FoodLibraryView: View {
     @StateObject private var viewModel = FoodLibraryViewModel()
-    @State private var isPresentingAdd: Bool = false
     @State private var isPresentingScan: Bool = false
     @State private var editingFood: SavedFood? = nil
     @State private var searchText: String = ""
@@ -15,20 +14,23 @@ struct FoodLibraryView: View {
                         isPresentingScan = true
                     } label: {
                         HStack(spacing: 12) {
-                            Image(systemName: "camera.viewfinder")
+                            Image(systemName: "plus.circle.fill")
                                 .font(.system(size: 18, weight: .semibold))
                             VStack(alignment: .leading, spacing: 4) {
-                                Text("Scan to add")
+                                Text("Add food")
                                     .font(.headline)
-                                Text("Use AI to estimate macros from a photo or text.")
+                                Text("Add manually or use AI to estimate macros.")
                                     .font(.caption)
-                                    .foregroundColor(.secondary)
+                                    .foregroundColor(.white.opacity(0.8))
                             }
                             Spacer()
                         }
                         .padding(.vertical, 6)
+                        .frame(maxWidth: .infinity, alignment: .leading)
+                        .contentShape(Rectangle())
                     }
-                    .buttonStyle(.plain)
+                    .foregroundColor(.white)
+                    .listRowBackground(Color(red: 0.8, green: 0.2, blue: 0.6))
                 }
 
                 if viewModel.foods.isEmpty && !viewModel.isLoading {
@@ -59,15 +61,7 @@ struct FoodLibraryView: View {
             }
             .listStyle(.insetGrouped)
             .navigationTitle("Library")
-            .toolbar {
-                ToolbarItem(placement: .primaryAction) {
-                    Button {
-                        isPresentingAdd = true
-                    } label: {
-                        Image(systemName: "plus")
-                    }
-                }
-            }
+            .toolbar {}
             .searchable(text: $searchText, placement: .navigationBarDrawer(displayMode: .always))
             .task {
                 await viewModel.loadFoods()
@@ -97,12 +91,6 @@ struct FoodLibraryView: View {
         }
         .dismissKeyboardOnTap()
         .keyboardDoneToolbar()
-        .sheet(isPresented: $isPresentingAdd) {
-            FoodEditorView(food: nil) { draft in
-                let didSave = await viewModel.saveFood(draft: draft)
-                return didSave
-            }
-        }
         .sheet(isPresented: $isPresentingScan) {
             AddLogSheet(mode: .library)
         }

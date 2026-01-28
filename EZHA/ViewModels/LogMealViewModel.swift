@@ -403,6 +403,16 @@ final class LogMealViewModel: ObservableObject {
         isLabelPhoto = false
         labelGramsText = ""
         labelBaseEstimate = nil
+        let hasText = !descriptionText.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
+        if !hasText {
+            estimate = nil
+            analysisStage = .idle
+            streamPreview = ""
+            streamBuffer = ""
+            errorMessage = nil
+            showSaveToLibrary = false
+            removedItemIndices = []
+        }
     }
 
     /// Sets image data directly from camera capture (bypasses PhotosPickerItem).

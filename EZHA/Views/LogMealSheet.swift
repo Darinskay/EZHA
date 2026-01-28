@@ -218,20 +218,6 @@ struct LogMealSheet: View {
                 Text("Photo")
                     .font(.headline)
                 Spacer()
-                if viewModel.selectedImageData != nil {
-                    Button {
-                        cameraImageData = nil
-                        viewModel.clearPhoto()
-                    } label: {
-                        Text("Remove")
-                            .font(.subheadline)
-                            .foregroundColor(.red)
-                            .padding(.vertical, 8)
-                            .padding(.horizontal, 12)
-                            .contentShape(Rectangle())
-                    }
-                    .buttonStyle(.plain)
-                }
             }
 
             if let imageData = viewModel.selectedImageData, let uiImage = UIImage(data: imageData) {
@@ -356,6 +342,24 @@ struct LogMealSheet: View {
                 }
             }
         }
+        .overlay(alignment: .topTrailing) {
+            if viewModel.selectedImageData != nil {
+                Button {
+                    cameraImageData = nil
+                    viewModel.clearPhoto()
+                } label: {
+                    Text("Remove")
+                        .font(.subheadline)
+                        .foregroundColor(.red)
+                        .padding(.vertical, 4)
+                        .padding(.horizontal, 12)
+                        .contentShape(Rectangle())
+                }
+                .buttonStyle(.plain)
+                .zIndex(1)
+                .padding(.top, 2)
+            }
+        }
         .modifier(CardModifier())
         .fullScreenCover(isPresented: $isShowingCamera) {
             CameraPicker(imageData: $cameraImageData)
@@ -398,7 +402,7 @@ struct LogMealSheet: View {
             }
             .frame(maxWidth: .infinity, minHeight: 52)
         }
-        .background(.linearGradient(colors: [Color(red: 0.9, green: 0.4, blue: 0.8), Color(red: 0.5, green: 0.2, blue: 0.7)], startPoint: .leading, endPoint: .trailing))
+        .background(Color(red: 0.8, green: 0.2, blue: 0.6))
         .foregroundColor(.white)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .shadow(color: Color.black.opacity(0.08), radius: 8, x: 0, y: 6)
@@ -549,7 +553,7 @@ struct LogMealSheet: View {
             }
             .frame(maxWidth: .infinity, minHeight: 52)
         }
-        .background(.linearGradient(colors: [Color(red: 0.9, green: 0.4, blue: 0.8), Color(red: 0.5, green: 0.2, blue: 0.7)], startPoint: .leading, endPoint: .trailing))
+        .background(Color.indigo)
         .foregroundColor(.white)
         .clipShape(RoundedRectangle(cornerRadius: 16))
         .disabled(!viewModel.canSaveMeal || viewModel.isSaving)
@@ -738,7 +742,7 @@ private struct MealLibraryPickerSheet: View {
                     }
                     .font(.headline)
                     .frame(maxWidth: .infinity, minHeight: 48)
-                    .background(localSelections.isEmpty ? Color.gray.opacity(0.4) : Color(.systemBlue))
+                    .background(localSelections.isEmpty ? Color.gray.opacity(0.4) : Color(red: 0.8, green: 0.2, blue: 0.6))
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .disabled(localSelections.isEmpty)

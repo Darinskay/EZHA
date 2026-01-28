@@ -103,7 +103,7 @@ struct AuthLandingView: View {
                         }
                         .buttonStyle(.plain)
                         .frame(height: 48)
-                        .background(.linearGradient(colors: [Color(red: 0.9, green: 0.4, blue: 0.8), Color(red: 0.5, green: 0.2, blue: 0.7)], startPoint: .leading, endPoint: .trailing), in: RoundedRectangle(cornerRadius: 16))
+                        .background(Color(red: 0.8, green: 0.2, blue: 0.6), in: RoundedRectangle(cornerRadius: 16))
                         .foregroundColor(.white)
 
                         Button {

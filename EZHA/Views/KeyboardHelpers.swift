@@ -68,7 +68,9 @@ struct KeyboardDoneToolbar: ViewModifier {
 
 extension View {
     func dismissKeyboardOnTap() -> some View {
-        background(KeyboardDismissView())
+        simultaneousGesture(TapGesture().onEnded {
+            dismissKeyboard()
+        })
     }
 
     func keyboardDoneToolbar() -> some View {

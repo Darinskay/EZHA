@@ -106,7 +106,7 @@ struct SavedFoodQuickAddSheet: View {
                     }
                     .font(.headline)
                     .frame(maxWidth: .infinity, minHeight: 48)
-                    .background(viewModel.canAnalyzeSavedFoodsSelection ? Color(.systemBlue) : Color.gray.opacity(0.4))
+                    .background(viewModel.canAnalyzeSavedFoodsSelection ? Color(red: 0.8, green: 0.2, blue: 0.6) : Color.gray.opacity(0.4))
                     .foregroundColor(.white)
                     .clipShape(RoundedRectangle(cornerRadius: 14))
                     .disabled(!viewModel.canAnalyzeSavedFoodsSelection)

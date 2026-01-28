@@ -92,7 +92,6 @@ struct TodayView: View {
                         .padding(8)
                 }
             }
-            .listRowInsets(EdgeInsets(top: 6, leading: 0, bottom: 6, trailing: 0))
             if let errorMessage = viewModel.errorMessage {
                 Text(errorMessage)
                     .font(.footnote)
@@ -129,6 +128,7 @@ struct TodayView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.bordered)
+            .tint(.indigo)
             .disabled(viewModel.isLoading)
 
             Button {
@@ -150,6 +150,7 @@ struct TodayView: View {
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.bordered)
+            .tint(.indigo)
             .disabled(viewModel.isLoading)
         }
         .listRowBackground(Color.clear)

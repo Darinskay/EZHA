@@ -511,6 +511,18 @@ final class AddLogViewModel: ObservableObject {
         isLabelPhoto = false
         labelGramsText = ""
         labelBaseEstimate = nil
+        if !hasTextInput {
+            estimate = nil
+            caloriesText = ""
+            proteinText = ""
+            carbsText = ""
+            fatText = ""
+            analysisStage = .idle
+            streamPreview = ""
+            streamBuffer = ""
+            errorMessage = nil
+            showSaveToLibrary = false
+        }
     }
 
     /// Sets image data directly from camera capture (bypasses PhotosPickerItem).
