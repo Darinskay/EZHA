@@ -4,6 +4,7 @@ struct SettingsView: View {
     @EnvironmentObject private var sessionManager: SessionManager
     @StateObject private var viewModel = SettingsViewModel()
     @State private var editorContext: DailyTargetEditorContext?
+    @AppStorage("appAppearance") private var appAppearance = AppAppearance.system.rawValue
 
     var body: some View {
         NavigationStack {
@@ -41,6 +42,16 @@ struct SettingsView: View {
                         Label("Add Target", systemImage: "plus")
                     }
                     .disabled(viewModel.isLoading)
+                }
+
+                Section("Appearance") {
+                    Picker("App theme", selection: $appAppearance) {
+                        ForEach(AppAppearance.allCases) { appearance in
+                            Text(appearance.title)
+                                .tag(appearance.rawValue)
+                        }
+                    }
+                    .pickerStyle(.segmented)
                 }
 
                 if let saveMessage = viewModel.saveMessage {

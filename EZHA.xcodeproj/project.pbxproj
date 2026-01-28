@@ -7,14 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		0F574566C9A841AAB24F7D70 /* DailyTargetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */; };
 		3301ADB08D684AC0BC3B8AB5 /* DailyTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */; };
 		58D3BE58110B48AD95370C7D /* DailyTargetRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */; };
-		D6710F4EB52C437299DAF1BE /* DailyTargetEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */; };
-		0F574566C9A841AAB24F7D70 /* DailyTargetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */; };
-		9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */; };
-		9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */; };
-		9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A112FBE000000000001 /* LogMealSheet.swift */; };
-		9B5F0A142FBE000000000001 /* LogMealViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A122FBE000000000001 /* LogMealViewModel.swift */; };
+		9B0293612F2A6C0200A9CF6F /* CameraPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0293602F2A6C0100A9CF6F /* CameraPicker.swift */; };
 		9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */; };
 		9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607352F1A5F5500825D3F /* SessionManager.swift */; };
 		9B06074D2F1A5F5500825D3F /* MainTabView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B06073F2F1A5F5500825D3F /* MainTabView.swift */; };
@@ -46,6 +42,9 @@
 		9B06078D2F1A5F5500825D3F /* SettingsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */; };
 		9B06078E2F1A5F5500825D3F /* DailySummary.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607902F1A5F5500825D3F /* DailySummary.swift */; };
 		9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */; };
+		9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */; };
+		9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A112FBE000000000001 /* LogMealSheet.swift */; };
+		9B5F0A142FBE000000000001 /* LogMealViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A122FBE000000000001 /* LogMealViewModel.swift */; };
 		9B7A8C012F9A100100000001 /* SavedFood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B012F9A100100000001 /* SavedFood.swift */; };
 		9B7A8C022F9A100100000001 /* SavedFoodRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */; };
 		9B7A8C032F9A100100000001 /* FoodLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */; };
@@ -53,6 +52,8 @@
 		9B7A8C052F9A100100000001 /* FoodEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B052F9A100100000001 /* FoodEditorView.swift */; };
 		9B7A8C062F9A100100000001 /* FoodLibraryPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */; };
 		9B7A8C072F9A100100000001 /* SavedFoodRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B072F9A100100000001 /* SavedFoodRow.swift */; };
+		9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */; };
+		D6710F4EB52C437299DAF1BE /* DailyTargetEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -73,14 +74,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
-		83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTarget.swift; sourceTree = "<group>"; };
-		2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetRepository.swift; sourceTree = "<group>"; };
-		A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetEditorView.swift; sourceTree = "<group>"; };
 		1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetPickerView.swift; sourceTree = "<group>"; };
-		9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpers.swift; sourceTree = "<group>"; };
-		9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodQuickAddSheet.swift; sourceTree = "<group>"; };
-		9B5F0A112FBE000000000001 /* LogMealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealSheet.swift; sourceTree = "<group>"; };
-		9B5F0A122FBE000000000001 /* LogMealViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealViewModel.swift; sourceTree = "<group>"; };
+		2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetRepository.swift; sourceTree = "<group>"; };
+		83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTarget.swift; sourceTree = "<group>"; };
+		9B0293602F2A6C0100A9CF6F /* CameraPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CameraPicker.swift; sourceTree = "<group>"; };
 		9B06072B2F1A5F5500825D3F /* AGENTS.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = AGENTS.md; sourceTree = "<group>"; };
 		9B06072C2F1A5F5500825D3F /* ai_estimation_contract.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = ai_estimation_contract.md; sourceTree = "<group>"; };
 		9B06072D2F1A5F5500825D3F /* food_entries.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; path = food_entries.md; sourceTree = "<group>"; };
@@ -115,6 +112,9 @@
 		9B0607862F1A5F5500825D3F /* schema.sql */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.sql; path = schema.sql; sourceTree = "<group>"; };
 		9B0607902F1A5F5500825D3F /* DailySummary.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummary.swift; sourceTree = "<group>"; };
 		9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailySummaryRepository.swift; sourceTree = "<group>"; };
+		9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodQuickAddSheet.swift; sourceTree = "<group>"; };
+		9B5F0A112FBE000000000001 /* LogMealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealSheet.swift; sourceTree = "<group>"; };
+		9B5F0A122FBE000000000001 /* LogMealViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealViewModel.swift; sourceTree = "<group>"; };
 		9B7A8B012F9A100100000001 /* SavedFood.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFood.swift; sourceTree = "<group>"; };
 		9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodRepository.swift; sourceTree = "<group>"; };
 		9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryViewModel.swift; sourceTree = "<group>"; };
@@ -122,9 +122,11 @@
 		9B7A8B052F9A100100000001 /* FoodEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodEditorView.swift; sourceTree = "<group>"; };
 		9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryPickerView.swift; sourceTree = "<group>"; };
 		9B7A8B072F9A100100000001 /* SavedFoodRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodRow.swift; sourceTree = "<group>"; };
+		9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpers.swift; sourceTree = "<group>"; };
 		9BD5BD982F1A59F200593F55 /* Ezha.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Ezha.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BD5BDA52F1A59F400593F55 /* EzhaTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		9BD5BDAF2F1A59F400593F55 /* EzhaUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = EzhaUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetEditorView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -288,6 +290,7 @@
 		9BD5BD8F2F1A59F200593F55 = {
 			isa = PBXGroup;
 			children = (
+				9B0293602F2A6C0100A9CF6F /* CameraPicker.swift */,
 				9B0607632F1A88E800825D3F /* Info.plist */,
 				9BD5BDA82F1A59F400593F55 /* EzhaTests */,
 				9BD5BDB22F1A59F400593F55 /* EzhaUITests */,
@@ -504,6 +507,7 @@
 				9B7A8C052F9A100100000001 /* FoodEditorView.swift in Sources */,
 				9B0607572F1A5F5500825D3F /* HistoryView.swift in Sources */,
 				9B7A8C072F9A100100000001 /* SavedFoodRow.swift in Sources */,
+				9B0293612F2A6C0200A9CF6F /* CameraPicker.swift in Sources */,
 				9B0607582F1A5F5500825D3F /* TodayViewModel.swift in Sources */,
 				9B0607592F1A5F5500825D3F /* EZHAApp.swift in Sources */,
 				9B06075A2F1A5F5500825D3F /* MacroProgressTable.swift in Sources */,

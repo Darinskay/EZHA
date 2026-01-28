@@ -39,6 +39,7 @@ final class LogMealViewModel: ObservableObject {
     private var streamBuffer: String = ""
     private var labelBaseEstimate: MacroEstimate? = nil
     private var isApplyingLabelScale: Bool = false
+    private var selectedItemLoadToken = UUID()
 
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
@@ -152,8 +153,11 @@ final class LogMealViewModel: ObservableObject {
 
     func loadSelectedImage() async {
         guard let selectedItem else { return }
+        let loadToken = UUID()
+        selectedItemLoadToken = loadToken
         do {
             if let data = try await selectedItem.loadTransferable(type: Data.self) {
+                guard selectedItemLoadToken == loadToken else { return }
                 selectedImageData = data
                 pendingEntryId = nil
                 pendingImagePath = nil
@@ -391,6 +395,7 @@ final class LogMealViewModel: ObservableObject {
     }
 
     func clearPhoto() {
+        selectedItemLoadToken = UUID()
         selectedItem = nil
         selectedImageData = nil
         pendingEntryId = nil
@@ -400,7 +405,19 @@ final class LogMealViewModel: ObservableObject {
         labelBaseEstimate = nil
     }
 
+    /// Sets image data directly from camera capture (bypasses PhotosPickerItem).
+    func setCameraImage(_ data: Data?) {
+        selectedItem = nil
+        selectedImageData = data
+        pendingEntryId = nil
+        pendingImagePath = nil
+        isLabelPhoto = false
+        labelGramsText = ""
+        labelBaseEstimate = nil
+    }
+
     func reset() {
+        selectedItemLoadToken = UUID()
         mealName = ""
         descriptionText = ""
         selectedItem = nil

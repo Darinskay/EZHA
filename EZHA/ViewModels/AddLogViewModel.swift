@@ -52,6 +52,7 @@ final class AddLogViewModel: ObservableObject {
     private var searchDebounceTask: Task<Void, Never>? = nil
     private var labelBaseEstimate: MacroEstimate? = nil
     private var isApplyingLabelScale: Bool = false
+    private var selectedItemLoadToken = UUID()
     @Published private(set) var savedFoodsEstimateActive: Bool = false
     private let analysisService: AIAnalysisService
     private let entryRepository: FoodEntryRepository
@@ -88,8 +89,11 @@ final class AddLogViewModel: ObservableObject {
 
     func loadSelectedImage() async {
         guard let selectedItem else { return }
+        let loadToken = UUID()
+        selectedItemLoadToken = loadToken
         do {
             if let data = try await selectedItem.loadTransferable(type: Data.self) {
+                guard selectedItemLoadToken == loadToken else { return }
                 selectedImageData = data
                 pendingEntryId = nil
                 pendingImagePath = nil
@@ -499,8 +503,20 @@ final class AddLogViewModel: ObservableObject {
     }
 
     func clearPhoto() {
+        selectedItemLoadToken = UUID()
         selectedItem = nil
         selectedImageData = nil
+        pendingEntryId = nil
+        pendingImagePath = nil
+        isLabelPhoto = false
+        labelGramsText = ""
+        labelBaseEstimate = nil
+    }
+
+    /// Sets image data directly from camera capture (bypasses PhotosPickerItem).
+    func setCameraImage(_ data: Data?) {
+        selectedItem = nil
+        selectedImageData = data
         pendingEntryId = nil
         pendingImagePath = nil
         isLabelPhoto = false

@@ -17,6 +17,9 @@ struct AddLogSheet: View {
     @State private var libraryNameEdited: Bool = false
     @State private var pendingDuplicate: (existing: SavedFood, draft: SavedFoodDraft)? = nil
     @State private var isShowingDuplicatePrompt: Bool = false
+    @State private var isShowingCamera: Bool = false
+    @State private var cameraImageData: Data? = nil
+    @State private var cameraError: String? = nil
 
     init(mode: Mode = .log) {
         self.mode = mode
@@ -41,6 +44,7 @@ struct AddLogSheet: View {
                             selectedLibraryFoodCard
                         } else {
                             photoCard
+                                .id(viewModel.selectedImageData == nil ? "no-image" : "has-image")
                             analyzeButton
                         }
 
@@ -289,52 +293,109 @@ struct AddLogSheet: View {
                     .font(.headline)
                 Spacer()
                 if viewModel.selectedImageData != nil {
-                    Button("Remove") {
+                    Button {
+                        print("DEBUG: Remove tapped")
+                        cameraImageData = nil
                         viewModel.clearPhoto()
+                    } label: {
+                        Text("Remove")
+                            .font(.subheadline)
+                            .foregroundColor(.red)
+                            .padding(.vertical, 8)
+                            .padding(.horizontal, 12)
+                            .contentShape(Rectangle())
                     }
-                    .font(.subheadline)
+                    .buttonStyle(.plain)
                 }
             }
 
-            let imageData = viewModel.selectedImageData
-            PhotosPicker(selection: $viewModel.selectedItem, matching: .images) {
+            if let imageData = viewModel.selectedImageData, let uiImage = UIImage(data: imageData) {
+                // Show captured/selected image with replace options
                 ZStack {
-                    RoundedRectangle(cornerRadius: 16)
-                        .fill(Color(.secondarySystemBackground))
+                    Image(uiImage: uiImage)
+                        .resizable()
+                        .scaledToFill()
+                        .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 220)
+                        .clipped()
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+
+                    VStack {
+                        Spacer()
+                        HStack(spacing: 12) {
+                            Button {
+                                handleCameraButtonTap()
+                            } label: {
+                                Label("Retake", systemImage: "camera")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+
+                            PhotosPicker(selection: $viewModel.selectedItem, matching: .images) {
+                                Label("Gallery", systemImage: "photo")
+                                    .font(.caption)
+                                    .fontWeight(.medium)
+                            }
+                            .padding(.horizontal, 12)
+                            .padding(.vertical, 8)
+                            .background(.ultraThinMaterial)
+                            .clipShape(Capsule())
+                        }
+                        .padding(.bottom, 12)
+                    }
+                }
+                .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 220)
+            } else {
+                // Show camera and gallery buttons when no image
+                HStack(spacing: 12) {
+                    Button {
+                        handleCameraButtonTap()
+                    } label: {
+                        VStack(spacing: 10) {
+                            Image(systemName: "camera.fill")
+                                .font(.system(size: 28, weight: .semibold))
+                            Text("Take Photo")
+                                .font(.subheadline)
+                                .fontWeight(.medium)
+                        }
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
                         .overlay(
                             RoundedRectangle(cornerRadius: 16)
                                 .strokeBorder(Color(.tertiaryLabel), style: StrokeStyle(lineWidth: 1, dash: [6]))
                         )
+                    }
+                    .buttonStyle(.plain)
 
-                    if let imageData,
-                       let uiImage = UIImage(data: imageData) {
-                        Image(uiImage: uiImage)
-                            .resizable()
-                            .scaledToFill()
-                            .frame(maxWidth: .infinity, minHeight: 180, maxHeight: 220)
-                            .clipped()
-                            .clipShape(RoundedRectangle(cornerRadius: 16))
-                            .overlay(alignment: .bottomLeading) {
-                                Text("Tap to replace")
-                                    .font(.caption)
-                                    .padding(.horizontal, 10)
-                                    .padding(.vertical, 6)
-                                    .background(.ultraThinMaterial)
-                                    .clipShape(Capsule())
-                                    .padding(12)
-                            }
-                    } else {
-                        VStack(spacing: 8) {
-                            Image(systemName: "camera.viewfinder")
+                    PhotosPicker(selection: $viewModel.selectedItem, matching: .images) {
+                        VStack(spacing: 10) {
+                            Image(systemName: "photo.on.rectangle")
                                 .font(.system(size: 28, weight: .semibold))
-                            Text("Add a photo or label")
+                            Text("Gallery")
                                 .font(.subheadline)
+                                .fontWeight(.medium)
                         }
-                        .foregroundColor(.secondary)
-                        .padding(.vertical, 22)
+                        .foregroundColor(.primary)
+                        .frame(maxWidth: .infinity, minHeight: 120)
+                        .background(Color(.secondarySystemBackground))
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 16)
+                                .strokeBorder(Color(.tertiaryLabel), style: StrokeStyle(lineWidth: 1, dash: [6]))
+                        )
                     }
                 }
-                .frame(maxWidth: .infinity, minHeight: 180)
+            }
+
+            if let cameraError {
+                Text(cameraError)
+                    .font(.caption)
+                    .foregroundColor(.red)
             }
 
             if viewModel.selectedImageData != nil {
@@ -371,6 +432,26 @@ struct AddLogSheet: View {
             }
         }
         .modifier(CardModifier())
+        .fullScreenCover(isPresented: $isShowingCamera) {
+            CameraPicker(imageData: $cameraImageData)
+                .ignoresSafeArea()
+        }
+        .onChange(of: cameraImageData) { _, newData in
+            if let newData {
+                viewModel.setCameraImage(newData)
+                cameraImageData = nil
+            }
+        }
+    }
+
+    private func handleCameraButtonTap() {
+        cameraError = nil
+        let status = CameraAccess.checkStatus()
+        if let errorMessage = status.errorMessage {
+            cameraError = errorMessage
+        } else {
+            isShowingCamera = true
+        }
     }
 
     private var analyzeButton: some View {
