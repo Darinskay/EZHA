@@ -447,11 +447,35 @@ struct AddLogSheet: View {
                 }
             }
 
-            VStack(spacing: 10) {
-                MacroEditField(label: "Calories", value: $viewModel.caloriesText)
-                MacroEditField(label: "Protein (g)", value: $viewModel.proteinText)
-                MacroEditField(label: "Carbs (g)", value: $viewModel.carbsText)
-                MacroEditField(label: "Fat (g)", value: $viewModel.fatText)
+            // Show itemized breakdown if items are available
+            if let estimate = viewModel.estimate, !estimate.items.isEmpty {
+                VStack(alignment: .leading, spacing: 8) {
+                    Text("Items breakdown")
+                        .font(.subheadline)
+                        .fontWeight(.semibold)
+                        .foregroundColor(.secondary)
+
+                    ForEach(estimate.items, id: \.self) { item in
+                        ItemBreakdownRow(item: item)
+                    }
+                }
+                .padding(12)
+                .background(Color(.secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 12))
+            }
+
+            VStack(alignment: .leading, spacing: 8) {
+                Text("Total")
+                    .font(.subheadline)
+                    .fontWeight(.semibold)
+                    .foregroundColor(.secondary)
+
+                VStack(spacing: 10) {
+                    MacroEditField(label: "Calories", value: $viewModel.caloriesText)
+                    MacroEditField(label: "Protein (g)", value: $viewModel.proteinText)
+                    MacroEditField(label: "Carbs (g)", value: $viewModel.carbsText)
+                    MacroEditField(label: "Fat (g)", value: $viewModel.fatText)
+                }
             }
 
             if let estimate = viewModel.estimate, !estimate.notes.isEmpty {
@@ -704,6 +728,56 @@ private struct MacroEditField: View {
         .padding(.horizontal, 12)
         .background(Color(.secondarySystemBackground))
         .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+}
+
+private struct ItemBreakdownRow: View {
+    let item: MacroItemEstimate
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack {
+                Text(item.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text("\(Int(item.grams))g")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 8) {
+                ItemMacroBadge(label: "Cal", value: item.calories)
+                ItemMacroBadge(label: "P", value: item.protein)
+                ItemMacroBadge(label: "C", value: item.carbs)
+                ItemMacroBadge(label: "F", value: item.fat)
+                Spacer()
+            }
+        }
+        .padding(.vertical, 6)
+    }
+}
+
+private struct ItemMacroBadge: View {
+    let label: String
+    let value: Double
+
+    var body: some View {
+        HStack(spacing: 2) {
+            Text(label)
+                .font(.caption2)
+                .foregroundColor(.secondary)
+            Text(formattedValue)
+                .font(.caption)
+                .fontWeight(.medium)
+        }
+    }
+
+    private var formattedValue: String {
+        if value < 10 {
+            return String(format: "%.1f", value)
+        }
+        return "\(Int(value.rounded()))"
     }
 }
 

@@ -310,8 +310,9 @@ function buildPrompt(
       "Food items (use grams exactly, preserve order):",
       ...items.map((item, index) => `${index + 1}. ${item.name} - ${item.grams} g`),
     ]
-    : ["Food items: [none]"];
+    : ["Food items: [none - identify from text/image]"];
 
+  // Always request itemized breakdown for accurate totals
   const outputSpec = items.length > 0
     ? [
       "Return JSON with fields in this exact order:",
@@ -322,10 +323,17 @@ function buildPrompt(
       "food_name is optional; use a short name if identifiable.",
     ]
     : [
+      "IMPORTANT: Always identify and itemize each distinct food in the input.",
       "Return JSON with fields in this exact order:",
-      "totals, source, food_name, notes.",
-      "totals must include calories, protein, carbs, fat.",
-      "food_name is optional; use a short name if identifiable.",
+      "items, totals, source, food_name, notes.",
+      "items must be an array where each item represents one food component. Each item must include:",
+      "name (food name), grams (estimated weight in grams), calories, protein, carbs, fat.",
+      "confidence and notes are optional per item.",
+      "If the input contains multiple foods (e.g., 'chicken with rice and salad'), create separate items for each.",
+      "If the input is a single food (e.g., 'apple'), create one item.",
+      "For photos: identify each visible food component separately with estimated gram weights.",
+      "totals must be the exact sum of all items (calories, protein, carbs, fat).",
+      "food_name is optional; use a combined short name if multiple items.",
     ];
 
   return [
@@ -364,13 +372,9 @@ function normalizeResult(
     return { error: "Missing required field: notes" };
   }
 
-  const totals = normalizeTotals(result);
-  if (!totals) {
-    return { error: "Missing required field: totals" };
-  }
-
+  // Parse items if provided
   let normalizedItems: AIItemResult[] | undefined;
-  if (result.items) {
+  if (result.items && Array.isArray(result.items) && result.items.length > 0) {
     normalizedItems = [];
     for (const item of result.items) {
       const name = typeof item.name === "string" ? item.name.trim() : "";
@@ -402,6 +406,34 @@ function normalizeResult(
     return { error: "Missing required field: items" };
   }
 
+  // Get AI's totals (may be inaccurate)
+  const aiTotals = normalizeTotals(result);
+  
+  // Compute totals from items if available (more accurate)
+  let totals: MacroTotals;
+  if (normalizedItems && normalizedItems.length > 0) {
+    const computedTotals = computeTotalsFromItems(normalizedItems);
+    totals = computedTotals;
+    
+    // Log if there's a significant mismatch (for debugging)
+    if (aiTotals) {
+      const calDiff = Math.abs(aiTotals.calories - computedTotals.calories);
+      const protDiff = Math.abs(aiTotals.protein - computedTotals.protein);
+      const carbsDiff = Math.abs(aiTotals.carbs - computedTotals.carbs);
+      const fatDiff = Math.abs(aiTotals.fat - computedTotals.fat);
+      if (calDiff > 1 || protDiff > 0.5 || carbsDiff > 0.5 || fatDiff > 0.5) {
+        console.log(
+          `Totals mismatch - AI: ${JSON.stringify(aiTotals)}, Computed: ${JSON.stringify(computedTotals)}`
+        );
+      }
+    }
+  } else if (aiTotals) {
+    // No items, use AI totals directly
+    totals = aiTotals;
+  } else {
+    return { error: "Missing required field: totals" };
+  }
+
   return {
     normalized: {
       totals,
@@ -411,6 +443,28 @@ function normalizeResult(
       food_name: result.food_name?.trim() || undefined,
       notes: result.notes,
     },
+  };
+}
+
+function computeTotalsFromItems(items: AIItemResult[]): MacroTotals {
+  let calories = 0;
+  let protein = 0;
+  let carbs = 0;
+  let fat = 0;
+
+  for (const item of items) {
+    calories += item.calories;
+    protein += item.protein;
+    carbs += item.carbs;
+    fat += item.fat;
+  }
+
+  // Round to 2 decimal places to avoid floating point issues
+  return {
+    calories: Math.round(calories * 100) / 100,
+    protein: Math.round(protein * 100) / 100,
+    carbs: Math.round(carbs * 100) / 100,
+    fat: Math.round(fat * 100) / 100,
   };
 }
 

@@ -3,6 +3,7 @@ import SwiftUI
 struct HistoryView: View {
     @StateObject private var viewModel = HistoryViewModel()
     @State private var expandedDate: String?
+    @State private var expandedEntryIds: Set<UUID> = []
 
     var body: some View {
         NavigationStack {
@@ -22,9 +23,10 @@ struct HistoryView: View {
                     DisclosureGroup(isExpanded: binding(for: summary.date)) {
                         HistoryEntriesList(
                             date: summary.date,
-                            entriesByDate: viewModel.entriesByDate,
+                            entriesWithItemsByDate: viewModel.entriesWithItemsByDate,
                             loadingDates: viewModel.loadingDates,
-                            entryErrors: viewModel.entryErrors
+                            entryErrors: viewModel.entryErrors,
+                            expandedEntryIds: $expandedEntryIds
                         )
                     } label: {
                         VStack(alignment: .leading, spacing: 6) {
@@ -84,6 +86,11 @@ private struct HistoryRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
+            if let targetName = summary.dailyTargetName, !targetName.isEmpty {
+                Text("Target: \(targetName)")
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
             if summary.hasData {
                 Text("Calories: \(Int(summary.calories)) / \(Int(summary.caloriesTarget)) (\(percent(summary.calories, target: summary.caloriesTarget))%)")
                 Text("Protein: \(Int(summary.protein))g / \(Int(summary.proteinTarget))g (\(percent(summary.protein, target: summary.proteinTarget))%)")
@@ -111,9 +118,10 @@ private struct HistoryRow: View {
 
 private struct HistoryEntriesList: View {
     let date: String
-    let entriesByDate: [String: [FoodEntry]]
+    let entriesWithItemsByDate: [String: [FoodEntryWithItems]]
     let loadingDates: Set<String>
     let entryErrors: [String: String]
+    @Binding var expandedEntryIds: Set<UUID>
 
     var body: some View {
         if loadingDates.contains(date) {
@@ -122,19 +130,33 @@ private struct HistoryEntriesList: View {
         } else if let errorMessage = entryErrors[date] {
             Text(errorMessage)
                 .foregroundColor(.red)
-        } else if let entries = entriesByDate[date], entries.isEmpty {
+        } else if let entries = entriesWithItemsByDate[date], entries.isEmpty {
             Text("No items logged.")
                 .foregroundColor(.secondary)
-        } else if let entries = entriesByDate[date] {
-            ForEach(entries) { entry in
-                HistoryEntryRow(entry: entry)
+        } else if let entries = entriesWithItemsByDate[date] {
+            ForEach(entries) { entryWithItems in
+                HistoryEntryRow(
+                    entryWithItems: entryWithItems,
+                    isExpanded: expandedEntryIds.contains(entryWithItems.id),
+                    onToggleExpand: {
+                        if expandedEntryIds.contains(entryWithItems.id) {
+                            expandedEntryIds.remove(entryWithItems.id)
+                        } else {
+                            expandedEntryIds.insert(entryWithItems.id)
+                        }
+                    }
+                )
             }
         }
     }
 }
 
 private struct HistoryEntryRow: View {
-    let entry: FoodEntry
+    let entryWithItems: FoodEntryWithItems
+    let isExpanded: Bool
+    let onToggleExpand: () -> Void
+
+    private var entry: FoodEntry { entryWithItems.entry }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
@@ -158,6 +180,28 @@ private struct HistoryEntryRow: View {
                 MacroChip(label: "C", value: entry.carbs, tint: .blue)
                 MacroChip(label: "F", value: entry.fat, tint: .pink)
             }
+
+            if entryWithItems.hasItems {
+                Button(action: onToggleExpand) {
+                    HStack(spacing: 4) {
+                        Text(isExpanded ? "Hide details" : "Show details")
+                            .font(.caption)
+                        Image(systemName: isExpanded ? "chevron.up" : "chevron.down")
+                            .font(.caption2)
+                    }
+                    .foregroundColor(.accentColor)
+                }
+                .buttonStyle(.plain)
+
+                if isExpanded {
+                    VStack(alignment: .leading, spacing: 8) {
+                        ForEach(entryWithItems.items) { item in
+                            HistoryItemRow(item: item)
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+            }
         }
         .padding(.vertical, 6)
     }
@@ -165,6 +209,47 @@ private struct HistoryEntryRow: View {
     private var entryTitle: String {
         let trimmed = entry.inputText?.trimmingCharacters(in: .whitespacesAndNewlines)
         return (trimmed?.isEmpty == false) ? trimmed ?? "Meal" : "Meal"
+    }
+}
+
+private struct HistoryItemRow: View {
+    let item: FoodEntryItem
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack {
+                Text(item.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+                Spacer()
+                Text(formattedGrams(item.grams))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+            }
+
+            HStack(spacing: 6) {
+                MacroChip(label: "Cal", value: item.calories, tint: .purple)
+                MacroChip(label: "P", value: item.protein, tint: .orange)
+                MacroChip(label: "C", value: item.carbs, tint: .blue)
+                MacroChip(label: "F", value: item.fat, tint: .pink)
+                Spacer()
+            }
+        }
+        .padding(10)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+    }
+
+    private func formattedGrams(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = false
+        if let text = formatter.string(from: NSNumber(value: value)) {
+            return "\(text) g"
+        }
+        return "\(value) g"
     }
 }
 

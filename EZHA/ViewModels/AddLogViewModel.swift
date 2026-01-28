@@ -1052,29 +1052,51 @@ final class AddLogViewModel: ObservableObject {
         itemInputs: [AIItemInput],
         estimate: MacroEstimate
     ) -> [FoodEntryItem]? {
-        guard !itemInputs.isEmpty else { return [] }
-        guard !estimate.items.isEmpty else {
-            errorMessage = "Please run analysis to estimate each item."
-            return nil
-        }
-        guard estimate.items.count == itemInputs.count else {
-            errorMessage = "AI returned a different number of items. Please try again."
-            return nil
+        // For list mode: match user inputs with AI results
+        if !itemInputs.isEmpty {
+            guard !estimate.items.isEmpty else {
+                errorMessage = "Please run analysis to estimate each item."
+                return nil
+            }
+            guard estimate.items.count == itemInputs.count else {
+                errorMessage = "AI returned a different number of items. Please try again."
+                return nil
+            }
+
+            return zip(itemInputs, estimate.items).map { input, result in
+                FoodEntryItem(
+                    id: UUID(),
+                    entryId: entryId,
+                    userId: userId,
+                    name: input.name,
+                    grams: input.grams,
+                    calories: result.calories,
+                    protein: result.protein,
+                    carbs: result.carbs,
+                    fat: result.fat,
+                    aiConfidence: result.confidence,
+                    aiNotes: result.notes ?? "",
+                    createdAt: nil
+                )
+            }
         }
 
-        return zip(itemInputs, estimate.items).map { input, result in
+        // For description/photo mode: use AI-provided items directly
+        guard !estimate.items.isEmpty else { return [] }
+
+        return estimate.items.map { item in
             FoodEntryItem(
                 id: UUID(),
                 entryId: entryId,
                 userId: userId,
-                name: input.name,
-                grams: input.grams,
-                calories: result.calories,
-                protein: result.protein,
-                carbs: result.carbs,
-                fat: result.fat,
-                aiConfidence: result.confidence,
-                aiNotes: result.notes ?? "",
+                name: item.name,
+                grams: item.grams,
+                calories: item.calories,
+                protein: item.protein,
+                carbs: item.carbs,
+                fat: item.fat,
+                aiConfidence: item.confidence,
+                aiNotes: item.notes ?? "",
                 createdAt: nil
             )
         }

@@ -73,6 +73,48 @@ struct FoodEntryRepository {
             .execute()
     }
 
+    func fetchItems(for entryId: UUID) async throws -> [FoodEntryItem] {
+        try await supabase
+            .from("food_entry_items")
+            .select()
+            .eq("entry_id", value: entryId.uuidString)
+            .order("created_at", ascending: true)
+            .execute()
+            .value
+    }
+
+    func fetchEntriesWithItems(for date: Date, timeZone: TimeZone) async throws -> [FoodEntryWithItems] {
+        let entries = try await fetchEntries(for: date, timeZone: timeZone)
+        return try await fetchItemsForEntries(entries)
+    }
+
+    func fetchEntriesWithItems(from startDate: Date, to endDate: Date, timeZone: TimeZone) async throws -> [FoodEntryWithItems] {
+        let entries = try await fetchEntries(from: startDate, to: endDate, timeZone: timeZone)
+        return try await fetchItemsForEntries(entries)
+    }
+
+    private func fetchItemsForEntries(_ entries: [FoodEntry]) async throws -> [FoodEntryWithItems] {
+        guard !entries.isEmpty else { return [] }
+
+        let entryIds = entries.map { $0.id.uuidString }
+        let allItems: [FoodEntryItem] = try await supabase
+            .from("food_entry_items")
+            .select()
+            .in("entry_id", values: entryIds)
+            .order("created_at", ascending: true)
+            .execute()
+            .value
+
+        let itemsByEntryId = Dictionary(grouping: allItems) { $0.entryId }
+
+        return entries.map { entry in
+            FoodEntryWithItems(
+                entry: entry,
+                items: itemsByEntryId[entry.id] ?? []
+            )
+        }
+    }
+
     private func currentUserId() async throws -> UUID {
         try await SupabaseConfig.currentUserId()
     }

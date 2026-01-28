@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		3301ADB08D684AC0BC3B8AB5 /* DailyTarget.swift in Sources */ = {isa = PBXBuildFile; fileRef = 83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */; };
+		58D3BE58110B48AD95370C7D /* DailyTargetRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */; };
+		D6710F4EB52C437299DAF1BE /* DailyTargetEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */; };
+		0F574566C9A841AAB24F7D70 /* DailyTargetPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */; };
 		9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */; };
 		9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */; };
 		9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A112FBE000000000001 /* LogMealSheet.swift */; };
@@ -69,6 +73,10 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTarget.swift; sourceTree = "<group>"; };
+		2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetRepository.swift; sourceTree = "<group>"; };
+		A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetEditorView.swift; sourceTree = "<group>"; };
+		1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DailyTargetPickerView.swift; sourceTree = "<group>"; };
 		9B9D6A122FA0D97000000001 /* KeyboardHelpers.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardHelpers.swift; sourceTree = "<group>"; };
 		9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodQuickAddSheet.swift; sourceTree = "<group>"; };
 		9B5F0A112FBE000000000001 /* LogMealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealSheet.swift; sourceTree = "<group>"; };
@@ -170,6 +178,7 @@
 		9B0607302F1A5F5500825D3F /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				83A09A1620C5468AAEB6BB46 /* DailyTarget.swift */,
 				9B0607902F1A5F5500825D3F /* DailySummary.swift */,
 				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
 				9B0607802F1A5F5500825D3F /* Profile.swift */,
@@ -190,6 +199,7 @@
 			isa = PBXGroup;
 			children = (
 				9B0607332F1A5F5500825D3F /* AIAnalysisService.swift */,
+				2FF4D8FFA64F4891A354C990 /* DailyTargetRepository.swift */,
 				9B0607912F1A5F5500825D3F /* DailySummaryRepository.swift */,
 				9B0607342F1A5F5500825D3F /* FoodLogStore.swift */,
 				9B0607822F1A5F5500825D3F /* FoodEntryRepository.swift */,
@@ -222,6 +232,8 @@
 				9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */,
 				9B5F0A112FBE000000000001 /* LogMealSheet.swift */,
 				9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */,
+				A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */,
+				1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */,
 				9B7A8B052F9A100100000001 /* FoodEditorView.swift */,
 				9B7A8B042F9A100100000001 /* FoodLibraryView.swift */,
 				9B7A8B062F9A100100000001 /* FoodLibraryPickerView.swift */,
@@ -455,6 +467,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				3301ADB08D684AC0BC3B8AB5 /* DailyTarget.swift in Sources */,
+				58D3BE58110B48AD95370C7D /* DailyTargetRepository.swift in Sources */,
+				D6710F4EB52C437299DAF1BE /* DailyTargetEditorView.swift in Sources */,
+				0F574566C9A841AAB24F7D70 /* DailyTargetPickerView.swift in Sources */,
 				9B9D6A132FA0D97000000001 /* KeyboardHelpers.swift in Sources */,
 				9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */,
 				9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */,

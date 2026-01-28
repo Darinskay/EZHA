@@ -50,7 +50,7 @@ private struct MacroRow: View {
                 Text(label)
                     .font(.headline)
                 Spacer()
-                Text("\(Int(percentage * 100))%")
+                Text("\(Int(round(percentage * 100)))%")
                     .font(.subheadline)
                     .foregroundColor(percentageTextColor)
             }

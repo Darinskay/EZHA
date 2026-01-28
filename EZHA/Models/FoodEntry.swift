@@ -130,3 +130,13 @@ struct MacroEstimate: Hashable {
     var notes: String
     var items: [MacroItemEstimate]
 }
+
+/// A food entry with its associated items for display in Today/History views
+struct FoodEntryWithItems: Identifiable, Hashable {
+    let entry: FoodEntry
+    let items: [FoodEntryItem]
+
+    var id: UUID { entry.id }
+
+    var hasItems: Bool { !items.isEmpty }
+}

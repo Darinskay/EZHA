@@ -32,6 +32,7 @@ final class LogMealViewModel: ObservableObject {
     @Published var analysisStage: AnalysisStage = .idle
     @Published var streamPreview: String = ""
     @Published var showSaveToLibrary: Bool = false
+    @Published var removedItemIndices: Set<Int> = []
 
     private var pendingEntryId: UUID? = nil
     private var pendingImagePath: String? = nil
@@ -101,9 +102,31 @@ final class LogMealViewModel: ObservableObject {
         }
     }
 
+    /// AI items excluding removed ones
+    var activeAIItems: [MacroItemEstimate] {
+        guard let items = estimate?.items else { return [] }
+        return items.enumerated().compactMap { index, item in
+            removedItemIndices.contains(index) ? nil : item
+        }
+    }
+
+    /// Totals computed from active AI items only
+    var aiItemsTotals: MacroDoubles? {
+        let items = activeAIItems
+        guard !items.isEmpty else { return nil }
+        return items.reduce(into: MacroDoubles(calories: 0, protein: 0, carbs: 0, fat: 0)) { partial, item in
+            partial = MacroDoubles(
+                calories: partial.calories + item.calories,
+                protein: partial.protein + item.protein,
+                carbs: partial.carbs + item.carbs,
+                fat: partial.fat + item.fat
+            )
+        }
+    }
+
     var combinedTotals: MacroDoubles? {
         let library = libraryTotals
-        let aiTotals = estimate.map { MacroDoubles(calories: $0.calories, protein: $0.protein, carbs: $0.carbs, fat: $0.fat) }
+        let aiTotals = aiItemsTotals
         if aiTotals == nil && library.calories == 0 && library.protein == 0 && library.carbs == 0 && library.fat == 0 {
             return nil
         }
@@ -120,11 +143,11 @@ final class LogMealViewModel: ObservableObject {
 
     var canSaveMeal: Bool {
         let hasLibrary = librarySelections.contains { parseMacro($0.gramsText) != nil }
-        let hasAI = estimate != nil
-        if hasTextOrPhotoInput && !hasAI {
+        let hasActiveAIItems = !activeAIItems.isEmpty
+        if hasTextOrPhotoInput && !hasActiveAIItems {
             return false
         }
-        return hasLibrary || hasAI
+        return hasLibrary || hasActiveAIItems
     }
 
     func loadSelectedImage() async {
@@ -188,6 +211,7 @@ final class LogMealViewModel: ObservableObject {
         streamBuffer = ""
         estimate = nil
         showSaveToLibrary = false
+        removedItemIndices = []
         defer { isAnalyzing = false }
 
         do {
@@ -302,7 +326,25 @@ final class LogMealViewModel: ObservableObject {
                 createdAt: nil
             )
 
-            try await entryRepository.insertFoodEntry(entry, items: [])
+            // Convert active AI items to FoodEntryItem for storage
+            let entryItems = activeAIItems.map { item in
+                FoodEntryItem(
+                    id: UUID(),
+                    entryId: entryId,
+                    userId: userId,
+                    name: item.name,
+                    grams: item.grams,
+                    calories: item.calories,
+                    protein: item.protein,
+                    carbs: item.carbs,
+                    fat: item.fat,
+                    aiConfidence: item.confidence,
+                    aiNotes: item.notes ?? "",
+                    createdAt: nil
+                )
+            }
+
+            try await entryRepository.insertFoodEntry(entry, items: entryItems)
 
             if saveToLibrary, let libraryName {
                 guard let draft = buildLibraryDraft(name: libraryName, totals: totals) else { return false }
@@ -377,6 +419,7 @@ final class LogMealViewModel: ObservableObject {
         pendingImagePath = nil
         labelBaseEstimate = nil
         showSaveToLibrary = false
+        removedItemIndices = []
     }
 
     func updateLibrarySelections(_ selections: [MealLibrarySelection]) {
@@ -392,6 +435,10 @@ final class LogMealViewModel: ObservableObject {
 
     func removeLibrarySelection(id: UUID) {
         librarySelections.removeAll { $0.id == id }
+    }
+
+    func removeAIItem(at index: Int) {
+        removedItemIndices.insert(index)
     }
 
     func validateLibrarySelections() -> Bool {

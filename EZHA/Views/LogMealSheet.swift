@@ -30,8 +30,8 @@ struct LogMealSheet: View {
                                 .padding(.horizontal, 16)
                         }
 
-                        if let estimate = viewModel.estimate {
-                            aiSummaryCard(estimate: estimate)
+                        if viewModel.estimate != nil {
+                            aiItemsCard
                         }
 
                         if let totals = viewModel.combinedTotals {
@@ -351,23 +351,54 @@ struct LogMealSheet: View {
         .modifier(CardModifier())
     }
 
-    private func aiSummaryCard(estimate: MacroEstimate) -> some View {
+    private var aiItemsCard: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
                 Text("AI estimate")
                     .font(.headline)
                 Spacer()
-                ConfidenceBadge(confidence: estimate.confidence, source: estimate.source)
+                if let estimate = viewModel.estimate {
+                    ConfidenceBadge(confidence: estimate.confidence, source: estimate.source)
+                }
             }
 
-            HStack(spacing: 8) {
-                MacroBadge(label: "Cal", value: formattedMacro(estimate.calories))
-                MacroBadge(label: "P", value: formattedMacro(estimate.protein))
-                MacroBadge(label: "C", value: formattedMacro(estimate.carbs))
-                MacroBadge(label: "F", value: formattedMacro(estimate.fat))
+            let items = viewModel.activeAIItems
+            if items.isEmpty {
+                Text("No items detected")
+                    .font(.subheadline)
+                    .foregroundColor(.secondary)
+                    .frame(maxWidth: .infinity, alignment: .center)
+                    .padding(.vertical, 8)
+            } else {
+                VStack(spacing: 10) {
+                    ForEach(Array(items.enumerated()), id: \.offset) { displayIndex, item in
+                        let originalIndex = findOriginalIndex(for: displayIndex)
+                        AIItemRow(
+                            item: item,
+                            onRemove: {
+                                viewModel.removeAIItem(at: originalIndex)
+                            }
+                        )
+                    }
+                }
             }
         }
         .modifier(CardModifier())
+    }
+
+    /// Find the original index in estimate.items for a given display index in activeAIItems
+    private func findOriginalIndex(for displayIndex: Int) -> Int {
+        guard let allItems = viewModel.estimate?.items else { return displayIndex }
+        var activeCount = 0
+        for (originalIndex, _) in allItems.enumerated() {
+            if !viewModel.removedItemIndices.contains(originalIndex) {
+                if activeCount == displayIndex {
+                    return originalIndex
+                }
+                activeCount += 1
+            }
+        }
+        return displayIndex
     }
 
     private func totalsCard(totals: MacroDoubles) -> some View {
@@ -386,8 +417,8 @@ struct LogMealSheet: View {
                 Text("Library: \(formattedMacro(viewModel.libraryTotals.calories)) cal")
                     .font(.caption)
                     .foregroundColor(.secondary)
-                if let estimate = viewModel.estimate {
-                    Text("AI: \(formattedMacro(estimate.calories)) cal")
+                if let aiTotals = viewModel.aiItemsTotals {
+                    Text("AI: \(formattedMacro(aiTotals.calories)) cal")
                         .font(.caption)
                         .foregroundColor(.secondary)
                 }
@@ -847,6 +878,69 @@ private struct MacroBadge: View {
         .padding(.vertical, 6)
         .background(Color(.secondarySystemBackground))
         .clipShape(Capsule())
+    }
+}
+
+private struct AIItemRow: View {
+    let item: MacroItemEstimate
+    let onRemove: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            VStack(alignment: .leading, spacing: 6) {
+                Text(item.name)
+                    .font(.subheadline)
+                    .fontWeight(.medium)
+
+                Text(formattedGrams(item.grams))
+                    .font(.caption)
+                    .foregroundColor(.secondary)
+
+                HStack(spacing: 6) {
+                    MacroBadge(label: "Cal", value: formattedMacro(item.calories))
+                    MacroBadge(label: "P", value: formattedMacro(item.protein))
+                    MacroBadge(label: "C", value: formattedMacro(item.carbs))
+                    MacroBadge(label: "F", value: formattedMacro(item.fat))
+                }
+            }
+
+            Spacer()
+
+            Button(action: onRemove) {
+                Image(systemName: "xmark.circle.fill")
+                    .foregroundColor(.secondary)
+                    .font(.system(size: 18))
+            }
+            .buttonStyle(.plain)
+            .accessibilityLabel("Remove \(item.name)")
+        }
+        .padding(12)
+        .background(Color(.secondarySystemBackground))
+        .clipShape(RoundedRectangle(cornerRadius: 12))
+    }
+
+    private func formattedGrams(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = false
+        if let text = formatter.string(from: NSNumber(value: value)) {
+            return "\(text) g"
+        }
+        return "\(value) g"
+    }
+
+    private func formattedMacro(_ value: Double) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.maximumFractionDigits = 1
+        formatter.minimumFractionDigits = 0
+        formatter.usesGroupingSeparator = false
+        if let text = formatter.string(from: NSNumber(value: value)) {
+            return text
+        }
+        return String(value)
     }
 }
 

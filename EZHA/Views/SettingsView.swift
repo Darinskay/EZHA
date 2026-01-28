@@ -3,36 +3,42 @@ import SwiftUI
 struct SettingsView: View {
     @EnvironmentObject private var sessionManager: SessionManager
     @StateObject private var viewModel = SettingsViewModel()
+    @State private var editorContext: DailyTargetEditorContext?
 
     var body: some View {
         NavigationStack {
             Form {
                 Section("Daily Targets") {
-                    LabeledContent("Calories") {
-                        TextField("", text: $viewModel.caloriesText)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Protein (g)") {
-                        TextField("", text: $viewModel.proteinText)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Carbs (g)") {
-                        TextField("", text: $viewModel.carbsText)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
-                    }
-                    LabeledContent("Fat (g)") {
-                        TextField("", text: $viewModel.fatText)
-                            .keyboardType(.numberPad)
-                            .multilineTextAlignment(.trailing)
+                    if viewModel.targets.isEmpty {
+                        Text("No targets yet.")
+                            .foregroundColor(.secondary)
                     }
 
-                    Button("Save Targets") {
-                        Task {
-                            await viewModel.saveTargets()
+                    ForEach(viewModel.targets) { target in
+                        Button {
+                            editorContext = DailyTargetEditorContext(target: target)
+                        } label: {
+                            DailyTargetRow(target: target)
                         }
+                        .foregroundColor(.primary)
+                    }
+                    .onDelete { indexSet in
+                        guard viewModel.targets.count > 1 else {
+                            viewModel.errorMessage = "At least one target is required."
+                            return
+                        }
+                        for index in indexSet {
+                            let target = viewModel.targets[index]
+                            Task {
+                                await viewModel.deleteTarget(id: target.id)
+                            }
+                        }
+                    }
+
+                    Button {
+                        editorContext = DailyTargetEditorContext(target: nil)
+                    } label: {
+                        Label("Add Target", systemImage: "plus")
                     }
                     .disabled(viewModel.isLoading)
                 }
@@ -71,5 +77,47 @@ struct SettingsView: View {
         .task {
             await viewModel.loadTargets()
         }
+        .sheet(item: $editorContext) { context in
+            DailyTargetEditorView(target: context.target) { input in
+                Task {
+                    await viewModel.saveTarget(input)
+                }
+            }
+        }
     }
+}
+
+private struct DailyTargetRow: View {
+    let target: DailyTarget
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text(target.name)
+                .font(.headline)
+            HStack(spacing: 12) {
+                TargetValue(label: "Cals", value: target.caloriesTarget, unit: "kcal")
+                TargetValue(label: "P", value: target.proteinTarget, unit: "g")
+                TargetValue(label: "C", value: target.carbsTarget, unit: "g")
+                TargetValue(label: "F", value: target.fatTarget, unit: "g")
+            }
+            .font(.caption)
+            .foregroundColor(.secondary)
+        }
+        .padding(.vertical, 4)
+    }
+}
+
+private struct TargetValue: View {
+    let label: String
+    let value: Double
+    let unit: String
+
+    var body: some View {
+        Text("\(label): \(Int(round(value)))\(unit)")
+    }
+}
+
+private struct DailyTargetEditorContext: Identifiable {
+    let id = UUID()
+    let target: DailyTarget?
 }

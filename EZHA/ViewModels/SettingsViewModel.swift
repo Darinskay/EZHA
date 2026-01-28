@@ -2,18 +2,20 @@ import Foundation
 
 @MainActor
 final class SettingsViewModel: ObservableObject {
-    @Published var caloriesText = ""
-    @Published var proteinText = ""
-    @Published var carbsText = ""
-    @Published var fatText = ""
+    @Published var targets: [DailyTarget] = []
     @Published var isLoading = false
     @Published var errorMessage: String?
     @Published var saveMessage: String?
 
     private let profileRepository: ProfileRepository
+    private let targetRepository: DailyTargetRepository
 
-    init(profileRepository: ProfileRepository = ProfileRepository()) {
+    init(
+        profileRepository: ProfileRepository = ProfileRepository(),
+        targetRepository: DailyTargetRepository = DailyTargetRepository()
+    ) {
         self.profileRepository = profileRepository
+        self.targetRepository = targetRepository
     }
 
     func loadTargets() async {
@@ -31,40 +33,70 @@ final class SettingsViewModel: ObservableObject {
             try await profileRepository.ensureProfileRowExists(defaultTargets: defaultProfile)
 
             if let profile = try await profileRepository.fetchProfile() {
-                caloriesText = String(Int(profile.caloriesTarget))
-                proteinText = String(Int(profile.proteinTarget))
-                carbsText = String(Int(profile.carbsTarget))
-                fatText = String(Int(profile.fatTarget))
+                targets = try await targetRepository.ensureTargets(for: profile)
+                if profile.activeTargetId == nil, let firstTarget = targets.first {
+                    try await profileRepository.updateActiveTarget(firstTarget.id)
+                }
             }
         } catch {
             errorMessage = "Unable to load targets."
         }
     }
 
-    func saveTargets() async {
+    func saveTarget(_ input: DailyTargetInput) async {
         isLoading = true
         errorMessage = nil
         saveMessage = nil
         defer { isLoading = false }
 
-        guard let calories = Double(caloriesText),
-              let protein = Double(proteinText),
-              let carbs = Double(carbsText),
-              let fat = Double(fatText) else {
-            errorMessage = "Enter valid numbers for targets."
-            return
-        }
-
         do {
-            try await profileRepository.upsertProfileTargets(
-                calories: calories,
-                protein: protein,
-                carbs: carbs,
-                fat: fat
-            )
-            saveMessage = "Targets saved."
+            if let id = input.id {
+                try await targetRepository.updateTarget(
+                    id: id,
+                    name: input.name,
+                    calories: input.calories,
+                    protein: input.protein,
+                    carbs: input.carbs,
+                    fat: input.fat
+                )
+            } else {
+                try await targetRepository.insertTarget(
+                    name: input.name,
+                    calories: input.calories,
+                    protein: input.protein,
+                    carbs: input.carbs,
+                    fat: input.fat
+                )
+            }
+            if let profile = try await profileRepository.fetchProfile(), profile.activeTargetId == nil {
+                let updatedTargets = try await targetRepository.fetchTargets()
+                if let firstTarget = updatedTargets.first {
+                    try await profileRepository.updateActiveTarget(firstTarget.id)
+                }
+            }
+            targets = try await targetRepository.fetchTargets()
+            saveMessage = "Target saved."
         } catch {
             errorMessage = "Unable to save targets."
+        }
+    }
+
+    func deleteTarget(id: UUID) async {
+        isLoading = true
+        errorMessage = nil
+        saveMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await targetRepository.deleteTarget(id: id)
+            targets = try await targetRepository.fetchTargets()
+            if let profile = try await profileRepository.fetchProfile(),
+               profile.activeTargetId == id,
+               let replacement = targets.first {
+                try await profileRepository.updateActiveTarget(replacement.id)
+            }
+        } catch {
+            errorMessage = "Unable to delete target."
         }
     }
 

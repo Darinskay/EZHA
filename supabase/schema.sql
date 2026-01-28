@@ -9,7 +9,20 @@ create table if not exists public.profiles (
     protein_target numeric not null default 0,
     carbs_target numeric not null default 0,
     fat_target numeric not null default 0,
+    active_target_id uuid,
     active_date date not null default current_date,
+    created_at timestamptz not null default now(),
+    updated_at timestamptz not null default now()
+);
+
+create table if not exists public.daily_targets (
+    id uuid primary key default gen_random_uuid(),
+    user_id uuid not null references auth.users(id) on delete cascade,
+    name text not null,
+    calories_target numeric not null default 0,
+    protein_target numeric not null default 0,
+    carbs_target numeric not null default 0,
+    fat_target numeric not null default 0,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
 );
@@ -57,6 +70,8 @@ create table if not exists public.daily_summaries (
     protein_target numeric not null default 0,
     carbs_target numeric not null default 0,
     fat_target numeric not null default 0,
+    daily_target_id uuid,
+    daily_target_name text,
     has_data boolean not null default true,
     created_at timestamptz not null default now(),
     primary key (user_id, date)
@@ -94,10 +109,12 @@ create index if not exists food_entries_user_date_idx on public.food_entries (us
 create index if not exists food_entry_items_entry_idx on public.food_entry_items (entry_id);
 create index if not exists food_entry_items_user_idx on public.food_entry_items (user_id);
 create index if not exists profiles_updated_at_idx on public.profiles (updated_at);
+create index if not exists daily_targets_user_name_idx on public.daily_targets (user_id, name);
 create index if not exists daily_summaries_user_date_idx on public.daily_summaries (user_id, date);
 create index if not exists saved_foods_user_name_idx on public.saved_foods (user_id, name);
 
 alter table public.profiles enable row level security;
+alter table public.daily_targets enable row level security;
 alter table public.food_entries enable row level security;
 alter table public.food_entry_items enable row level security;
 alter table public.daily_summaries enable row level security;
@@ -111,6 +128,9 @@ create policy "Profiles insert" on public.profiles
 
 create policy "Profiles update" on public.profiles
     for update using (auth.uid() = user_id);
+
+create policy "Daily targets all" on public.daily_targets
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "Food entries all" on public.food_entries
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
@@ -136,6 +156,19 @@ drop trigger if exists profiles_updated_at on public.profiles;
 create trigger profiles_updated_at
     before update on public.profiles
     for each row execute function public.set_profiles_updated_at();
+
+create or replace function public.set_daily_targets_updated_at()
+returns trigger as $$
+begin
+    new.updated_at = now();
+    return new;
+end;
+$$ language plpgsql;
+
+drop trigger if exists daily_targets_updated_at on public.daily_targets;
+create trigger daily_targets_updated_at
+    before update on public.daily_targets
+    for each row execute function public.set_daily_targets_updated_at();
 
 create or replace function public.set_saved_foods_updated_at()
 returns trigger as $$

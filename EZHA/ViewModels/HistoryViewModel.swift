@@ -1,13 +1,19 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 final class HistoryViewModel: ObservableObject {
     @Published private(set) var dailySummaries: [DailySummary] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
-    @Published private(set) var entriesByDate: [String: [FoodEntry]] = [:]
+    @Published private(set) var entriesWithItemsByDate: [String: [FoodEntryWithItems]] = [:]
     @Published private(set) var loadingDates: Set<String> = []
     @Published private(set) var entryErrors: [String: String] = [:]
+
+    /// Convenience accessor for just entries (without items) - for backward compatibility
+    var entriesByDate: [String: [FoodEntry]] {
+        entriesWithItemsByDate.mapValues { $0.map { $0.entry } }
+    }
 
     let daysToShow: Int = 60
     private let summaryRepository: DailySummaryRepository
@@ -30,7 +36,7 @@ final class HistoryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
-            entriesByDate = [:]
+            entriesWithItemsByDate = [:]
             loadingDates = []
             entryErrors = [:]
             guard let profile = try await profileRepository.fetchProfile() else {
@@ -60,7 +66,7 @@ final class HistoryViewModel: ObservableObject {
     }
 
     func loadEntries(for dateString: String) async {
-        if entriesByDate[dateString] != nil || loadingDates.contains(dateString) {
+        if entriesWithItemsByDate[dateString] != nil || loadingDates.contains(dateString) {
             return
         }
         loadingDates.insert(dateString)
@@ -69,19 +75,19 @@ final class HistoryViewModel: ObservableObject {
 
         guard let date = Self.dateFromString(dateString) else {
             entryErrors[dateString] = "Unable to read this date."
-            entriesByDate[dateString] = []
+            entriesWithItemsByDate[dateString] = []
             return
         }
 
         do {
-            let entries = try await entryRepository.fetchEntries(
+            let entriesWithItems = try await entryRepository.fetchEntriesWithItems(
                 for: date,
                 timeZone: TimeZone.current
             )
-            entriesByDate[dateString] = entries
+            entriesWithItemsByDate[dateString] = entriesWithItems
         } catch {
             entryErrors[dateString] = "Unable to load entries."
-            entriesByDate[dateString] = []
+            entriesWithItemsByDate[dateString] = []
         }
     }
 

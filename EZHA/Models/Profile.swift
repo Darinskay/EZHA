@@ -7,6 +7,7 @@ struct Profile: Codable, Hashable {
     var carbsTarget: Double
     var fatTarget: Double
     var activeDate: String
+    var activeTargetId: UUID?
     var createdAt: Date
     var updatedAt: Date
 
@@ -17,6 +18,7 @@ struct Profile: Codable, Hashable {
         case carbsTarget = "carbs_target"
         case fatTarget = "fat_target"
         case activeDate = "active_date"
+        case activeTargetId = "active_target_id"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }
@@ -29,6 +31,7 @@ struct Profile: Codable, Hashable {
             carbsTarget: 0,
             fatTarget: 0,
             activeDate: activeDate,
+            activeTargetId: nil,
             createdAt: Date(),
             updatedAt: Date()
         )
