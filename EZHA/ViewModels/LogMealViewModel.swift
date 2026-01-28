@@ -351,8 +351,8 @@ final class LogMealViewModel: ObservableObject {
             try await entryRepository.insertFoodEntry(entry, items: entryItems)
 
             if saveToLibrary, let libraryName {
-                guard let draft = buildLibraryDraft(name: libraryName, totals: totals) else { return false }
-                try await savedFoodRepository.insertFood(draft)
+                let ingredients = buildMealIngredients()
+                try await savedFoodRepository.insertMeal(name: libraryName, ingredients: ingredients)
             }
 
             return true
@@ -392,6 +392,41 @@ final class LogMealViewModel: ObservableObject {
             carbsPerServing: 0,
             fatPerServing: 0
         )
+    }
+
+    /// Build meal ingredients from library selections and AI items
+    func buildMealIngredients() -> [SavedMealIngredientDraft] {
+        var ingredients: [SavedMealIngredientDraft] = []
+
+        // Add library selections
+        for selection in librarySelections {
+            guard let grams = parseMacro(selection.gramsText), grams > 0 else { continue }
+            let macros = selection.food.macroDoubles(for: grams)
+            ingredients.append(SavedMealIngredientDraft(
+                name: selection.food.name,
+                grams: grams,
+                calories: macros.calories,
+                protein: macros.protein,
+                carbs: macros.carbs,
+                fat: macros.fat,
+                linkedFoodId: selection.food.id
+            ))
+        }
+
+        // Add active AI items
+        for item in activeAIItems {
+            ingredients.append(SavedMealIngredientDraft(
+                name: item.name,
+                grams: item.grams,
+                calories: item.calories,
+                protein: item.protein,
+                carbs: item.carbs,
+                fat: item.fat,
+                linkedFoodId: nil
+            ))
+        }
+
+        return ingredients
     }
 
     func clearPhoto() {

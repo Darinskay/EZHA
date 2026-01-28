@@ -12,6 +12,7 @@ struct LogMealSheet: View {
     @State private var isShowingCamera: Bool = false
     @State private var cameraImageData: Data? = nil
     @State private var cameraError: String? = nil
+    @State private var mealToLog: SavedFood? = nil
 
     var body: some View {
         NavigationStack {
@@ -92,8 +93,17 @@ struct LogMealSheet: View {
                     selections: viewModel.librarySelections,
                     onApply: { selections in
                         viewModel.updateLibrarySelections(selections)
+                    },
+                    onMealSelected: { meal in
+                        isLibraryPickerPresented = false
+                        mealToLog = meal
                     }
                 )
+            }
+            .sheet(item: $mealToLog) { meal in
+                MealQuickLogSheet(meal: meal, onSaved: {
+                    dismiss()
+                })
             }
         }
     }
@@ -638,6 +648,7 @@ struct LogMealSheet: View {
 private struct MealLibraryPickerSheet: View {
     let selections: [MealLibrarySelection]
     let onApply: ([MealLibrarySelection]) -> Void
+    let onMealSelected: (SavedFood) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = MealLibraryPickerViewModel()
@@ -702,12 +713,23 @@ private struct MealLibraryPickerSheet: View {
 
                         Section {
                             ForEach(filteredFoods) { food in
-                                MealAvailableFoodRow(
-                                    food: food,
-                                    isSelected: localSelections.contains(where: { $0.id == food.id }),
-                                    onAdd: { toggleFood(food) }
-                                )
-                                .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                if food.isMeal {
+                                    MealAvailableMealRow(
+                                        food: food,
+                                        onTap: {
+                                            onMealSelected(food)
+                                            dismiss()
+                                        }
+                                    )
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                } else {
+                                    MealAvailableFoodRow(
+                                        food: food,
+                                        isSelected: localSelections.contains(where: { $0.id == food.id }),
+                                        onAdd: { toggleFood(food) }
+                                    )
+                                    .listRowInsets(EdgeInsets(top: 6, leading: 16, bottom: 6, trailing: 16))
+                                }
                             }
                         } header: {
                             Text("All saved foods")
@@ -882,6 +904,25 @@ private struct MealAvailableFoodRow: View {
         .contentShape(Rectangle())
         .onTapGesture {
             onAdd()
+        }
+    }
+}
+
+private struct MealAvailableMealRow: View {
+    let food: SavedFood
+    let onTap: () -> Void
+
+    var body: some View {
+        HStack(alignment: .top, spacing: 12) {
+            SavedFoodRow(food: food)
+            Spacer()
+            Image(systemName: "chevron.right")
+                .foregroundColor(.secondary)
+                .font(.system(size: 14, weight: .semibold))
+        }
+        .contentShape(Rectangle())
+        .onTapGesture {
+            onTap()
         }
     }
 }

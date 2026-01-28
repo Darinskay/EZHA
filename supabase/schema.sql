@@ -92,8 +92,23 @@ create table if not exists public.saved_foods (
     protein_per_serving numeric not null default 0,
     carbs_per_serving numeric not null default 0,
     fat_per_serving numeric not null default 0,
+    is_meal boolean not null default false,
     created_at timestamptz not null default now(),
     updated_at timestamptz not null default now()
+);
+
+create table if not exists public.saved_meal_ingredients (
+    id uuid primary key default gen_random_uuid(),
+    meal_id uuid not null references public.saved_foods(id) on delete cascade,
+    user_id uuid not null references auth.users(id) on delete cascade,
+    name text not null,
+    grams numeric not null check (grams > 0),
+    calories numeric not null default 0,
+    protein numeric not null default 0,
+    carbs numeric not null default 0,
+    fat numeric not null default 0,
+    linked_food_id uuid references public.saved_foods(id) on delete set null,
+    created_at timestamptz not null default now()
 );
 
 alter table public.saved_foods add column if not exists calories_per_100g numeric not null default 0;
@@ -112,6 +127,8 @@ create index if not exists profiles_updated_at_idx on public.profiles (updated_a
 create index if not exists daily_targets_user_name_idx on public.daily_targets (user_id, name);
 create index if not exists daily_summaries_user_date_idx on public.daily_summaries (user_id, date);
 create index if not exists saved_foods_user_name_idx on public.saved_foods (user_id, name);
+create index if not exists saved_meal_ingredients_meal_idx on public.saved_meal_ingredients (meal_id);
+create index if not exists saved_meal_ingredients_user_idx on public.saved_meal_ingredients (user_id);
 
 alter table public.profiles enable row level security;
 alter table public.daily_targets enable row level security;
@@ -119,6 +136,7 @@ alter table public.food_entries enable row level security;
 alter table public.food_entry_items enable row level security;
 alter table public.daily_summaries enable row level security;
 alter table public.saved_foods enable row level security;
+alter table public.saved_meal_ingredients enable row level security;
 
 create policy "Profiles select" on public.profiles
     for select using (auth.uid() = user_id);
@@ -142,6 +160,9 @@ create policy "Daily summaries all" on public.daily_summaries
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create policy "Saved foods all" on public.saved_foods
+    for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
+
+create policy "Saved meal ingredients all" on public.saved_meal_ingredients
     for all using (auth.uid() = user_id) with check (auth.uid() = user_id);
 
 create or replace function public.set_profiles_updated_at()

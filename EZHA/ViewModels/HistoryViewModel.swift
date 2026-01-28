@@ -9,6 +9,11 @@ final class HistoryViewModel: ObservableObject {
     @Published private(set) var entriesWithItemsByDate: [String: [FoodEntryWithItems]] = [:]
     @Published private(set) var loadingDates: Set<String> = []
     @Published private(set) var entryErrors: [String: String] = [:]
+    @Published private(set) var activeDate: String = ""
+
+    var isActiveDateToday: Bool {
+        activeDate == Self.dateFormatter.string(from: Date())
+    }
 
     /// Convenience accessor for just entries (without items) - for backward compatibility
     var entriesByDate: [String: [FoodEntry]] {
@@ -40,9 +45,11 @@ final class HistoryViewModel: ObservableObject {
             loadingDates = []
             entryErrors = [:]
             guard let profile = try await profileRepository.fetchProfile() else {
+                activeDate = ""
                 dailySummaries = []
                 return
             }
+            activeDate = profile.activeDate
             let endDate = Self.dateFromString(profile.activeDate)
             let end = Calendar.current.date(byAdding: .day, value: -1, to: endDate ?? Date()) ?? Date()
             guard let start = Calendar.current.date(byAdding: .day, value: -(daysToShow - 1), to: end) else {
@@ -88,6 +95,19 @@ final class HistoryViewModel: ObservableObject {
         } catch {
             entryErrors[dateString] = "Unable to load entries."
             entriesWithItemsByDate[dateString] = []
+        }
+    }
+
+    func goToDate(_ dateString: String) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await profileRepository.updateActiveDate(dateString)
+            await loadHistory()
+        } catch {
+            errorMessage = "Unable to switch to that date."
         }
     }
 

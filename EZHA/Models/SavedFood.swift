@@ -15,6 +15,7 @@ struct SavedFood: Identifiable, Codable, Hashable {
     var proteinPerServing: Double
     var carbsPerServing: Double
     var fatPerServing: Double
+    var isMeal: Bool
     var createdAt: Date?
     var updatedAt: Date?
 
@@ -33,6 +34,7 @@ struct SavedFood: Identifiable, Codable, Hashable {
         case proteinPerServing = "protein_per_serving"
         case carbsPerServing = "carbs_per_serving"
         case fatPerServing = "fat_per_serving"
+        case isMeal = "is_meal"
         case createdAt = "created_at"
         case updatedAt = "updated_at"
     }

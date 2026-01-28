@@ -5,8 +5,20 @@ struct SavedFoodRow: View {
 
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
-            Text(food.name)
-                .font(.headline)
+            HStack(spacing: 8) {
+                Text(food.name)
+                    .font(.headline)
+                if food.isMeal {
+                    Text("meal")
+                        .font(.caption2)
+                        .fontWeight(.medium)
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Color.indigo)
+                        .clipShape(Capsule())
+                }
+            }
             Text(detailText)
                 .font(.caption)
                 .foregroundColor(.secondary)
@@ -15,6 +27,9 @@ struct SavedFoodRow: View {
     }
 
     private var detailText: String {
+        if food.isMeal {
+            return "Tap to log with custom portions"
+        }
         let unit = food.unitType == .per100g ? "per 100g" : "per serving"
         let macros = displayMacros
         return "\(Int(round(macros.calories))) cal \u{2022} P \(Int(round(macros.protein))) \u{2022} C \(Int(round(macros.carbs))) \u{2022} F \(Int(round(macros.fat))) (\(unit))"

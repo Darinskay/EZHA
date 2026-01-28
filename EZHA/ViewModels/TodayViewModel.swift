@@ -17,6 +17,12 @@ final class TodayViewModel: ObservableObject {
         entriesWithItems.map { $0.entry }
     }
 
+    var title: String {
+        guard let date = dateFromString(activeDate) else { return "Today" }
+        let label = Self.titleFormatter.string(from: date)
+        return "Today, \(label)"
+    }
+
     private let profileRepository: ProfileRepository
     private let entryRepository: FoodEntryRepository
     private let summaryRepository: DailySummaryRepository
@@ -51,8 +57,17 @@ final class TodayViewModel: ObservableObject {
                 availableTargets = try await targetRepository.ensureTargets(for: profile)
                 let resolvedTarget = resolveActiveTarget(profile: profile, targets: availableTargets)
                 activeTarget = resolvedTarget
-                targets = resolvedTarget?.macroTargets ?? .example
                 activeDate = profile.activeDate
+                if let summary = try await summaryRepository.fetchSummary(for: activeDate) {
+                    targets = MacroTargets(
+                        calories: Int(round(summary.caloriesTarget)),
+                        protein: Int(round(summary.proteinTarget)),
+                        carbs: Int(round(summary.carbsTarget)),
+                        fat: Int(round(summary.fatTarget))
+                    )
+                } else {
+                    targets = resolvedTarget?.macroTargets ?? .example
+                }
             }
 
             let entriesWithItems = try await entryRepository.fetchEntriesWithItems(
@@ -76,6 +91,7 @@ final class TodayViewModel: ObservableObject {
                 errorMessage = "Unable to load profile."
                 return
             }
+            let summaryForActiveDate = try await summaryRepository.fetchSummary(for: profile.activeDate)
             let currentTarget: DailyTarget?
             if let activeTarget {
                 currentTarget = activeTarget
@@ -97,13 +113,13 @@ final class TodayViewModel: ObservableObject {
                 protein: Double(totals.protein),
                 carbs: Double(totals.carbs),
                 fat: Double(totals.fat),
-                caloriesTarget: currentTarget?.caloriesTarget ?? profile.caloriesTarget,
-                proteinTarget: currentTarget?.proteinTarget ?? profile.proteinTarget,
-                carbsTarget: currentTarget?.carbsTarget ?? profile.carbsTarget,
-                fatTarget: currentTarget?.fatTarget ?? profile.fatTarget,
+                caloriesTarget: summaryForActiveDate?.caloriesTarget ?? currentTarget?.caloriesTarget ?? profile.caloriesTarget,
+                proteinTarget: summaryForActiveDate?.proteinTarget ?? currentTarget?.proteinTarget ?? profile.proteinTarget,
+                carbsTarget: summaryForActiveDate?.carbsTarget ?? currentTarget?.carbsTarget ?? profile.carbsTarget,
+                fatTarget: summaryForActiveDate?.fatTarget ?? currentTarget?.fatTarget ?? profile.fatTarget,
                 hasData: !entries.isEmpty,
-                dailyTargetId: currentTarget?.id,
-                dailyTargetName: currentTarget?.name,
+                dailyTargetId: summaryForActiveDate?.dailyTargetId ?? currentTarget?.id,
+                dailyTargetName: summaryForActiveDate?.dailyTargetName ?? currentTarget?.name,
                 createdAt: nil
             )
             try await summaryRepository.upsertSummary(summary)
@@ -175,6 +191,15 @@ final class TodayViewModel: ObservableObject {
         formatter.locale = Locale(identifier: "en_US_POSIX")
         formatter.timeZone = TimeZone.current
         formatter.dateFormat = "yyyy-MM-dd"
+        return formatter
+    }()
+
+    private static let titleFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.calendar = Calendar(identifier: .gregorian)
+        formatter.locale = Locale.current
+        formatter.timeZone = TimeZone.current
+        formatter.dateFormat = "d MMM"
         return formatter
     }()
 }

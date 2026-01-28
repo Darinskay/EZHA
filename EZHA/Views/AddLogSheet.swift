@@ -44,6 +44,7 @@ struct AddLogSheet: View {
     @State private var manualCarbsText: String = ""
     @State private var manualFatText: String = ""
     @State private var manualErrorMessage: String? = nil
+    @State private var mealToLog: SavedFood? = nil
 
     init(mode: Mode = .log) {
         self.mode = mode
@@ -189,6 +190,11 @@ struct AddLogSheet: View {
                 if let pendingDuplicate {
                     Text("\"\(pendingDuplicate.existing.name)\" is already in your Library.")
                 }
+            }
+            .sheet(item: $mealToLog) { meal in
+                MealQuickLogSheet(meal: meal, onSaved: {
+                    dismiss()
+                })
             }
         }
     }
@@ -435,10 +441,16 @@ struct AddLogSheet: View {
         }
         .modifier(CardModifier())
         .sheet(isPresented: $isShowingLibraryPicker) {
-            LibrarySearchSheet { food in
-                viewModel.selectLibraryFood(food)
-                isShowingLibraryPicker = false
-            }
+            LibrarySearchSheet(
+                onSelect: { food in
+                    viewModel.selectLibraryFood(food)
+                    isShowingLibraryPicker = false
+                },
+                onMealSelected: { meal in
+                    isShowingLibraryPicker = false
+                    mealToLog = meal
+                }
+            )
         }
     }
 
@@ -1282,6 +1294,7 @@ private struct CardModifier: ViewModifier {
 
 private struct LibrarySearchSheet: View {
     let onSelect: (SavedFood) -> Void
+    let onMealSelected: (SavedFood) -> Void
 
     @Environment(\.dismiss) private var dismiss
     @StateObject private var viewModel = FoodLibraryViewModel()
@@ -1328,7 +1341,12 @@ private struct LibrarySearchSheet: View {
                         LazyVStack(spacing: 0) {
                             ForEach(filteredFoods) { food in
                                 LibraryFoodRow(food: food) {
-                                    onSelect(food)
+                                    if food.isMeal {
+                                        onMealSelected(food)
+                                        dismiss()
+                                    } else {
+                                        onSelect(food)
+                                    }
                                 }
 
                                 if food.id != filteredFoods.last?.id {
@@ -1403,30 +1421,48 @@ private struct LibraryFoodRow: View {
                 // Food icon
                 ZStack {
                     Circle()
-                        .fill(Color.blue.opacity(0.1))
+                        .fill(food.isMeal ? Color.indigo.opacity(0.1) : Color.blue.opacity(0.1))
                         .frame(width: 44, height: 44)
-                    Image(systemName: "leaf.fill")
-                        .foregroundColor(.blue)
+                    Image(systemName: food.isMeal ? "fork.knife" : "leaf.fill")
+                        .foregroundColor(food.isMeal ? .indigo : .blue)
                 }
 
                 // Food details
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(food.name)
-                        .font(.body)
-                        .fontWeight(.medium)
-                        .foregroundColor(.primary)
-                        .lineLimit(1)
-
-                    HStack(spacing: 8) {
-                        MacroTag(value: Int(displayMacros.calories), label: "cal", color: .orange)
-                        MacroTag(value: Int(displayMacros.protein), label: "P", color: .blue)
-                        MacroTag(value: Int(displayMacros.carbs), label: "C", color: .green)
-                        MacroTag(value: Int(displayMacros.fat), label: "F", color: .purple)
+                    HStack(spacing: 6) {
+                        Text(food.name)
+                            .font(.body)
+                            .fontWeight(.medium)
+                            .foregroundColor(.primary)
+                            .lineLimit(1)
+                        if food.isMeal {
+                            Text("meal")
+                                .font(.caption2)
+                                .fontWeight(.medium)
+                                .foregroundColor(.white)
+                                .padding(.horizontal, 6)
+                                .padding(.vertical, 2)
+                                .background(Color.indigo)
+                                .clipShape(Capsule())
+                        }
                     }
 
-                    Text(unitLabel)
-                        .font(.caption2)
-                        .foregroundColor(.secondary)
+                    if food.isMeal {
+                        Text("Tap to log with custom portions")
+                            .font(.caption)
+                            .foregroundColor(.secondary)
+                    } else {
+                        HStack(spacing: 8) {
+                            MacroTag(value: Int(displayMacros.calories), label: "cal", color: .orange)
+                            MacroTag(value: Int(displayMacros.protein), label: "P", color: .blue)
+                            MacroTag(value: Int(displayMacros.carbs), label: "C", color: .green)
+                            MacroTag(value: Int(displayMacros.fat), label: "F", color: .purple)
+                        }
+
+                        Text(unitLabel)
+                            .font(.caption2)
+                            .foregroundColor(.secondary)
+                    }
                 }
 
                 Spacer()

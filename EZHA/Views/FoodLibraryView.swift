@@ -4,6 +4,7 @@ struct FoodLibraryView: View {
     @StateObject private var viewModel = FoodLibraryViewModel()
     @State private var isPresentingScan: Bool = false
     @State private var editingFood: SavedFood? = nil
+    @State private var loggingMeal: SavedFood? = nil
     @State private var searchText: String = ""
 
     var body: some View {
@@ -42,7 +43,11 @@ struct FoodLibraryView: View {
                 } else {
                     ForEach(filteredFoods) { food in
                         Button {
-                            editingFood = food
+                            if food.isMeal {
+                                loggingMeal = food
+                            } else {
+                                editingFood = food
+                            }
                         } label: {
                             SavedFoodRow(food: food)
                                 .contentShape(Rectangle())
@@ -68,6 +73,11 @@ struct FoodLibraryView: View {
             }
             .onChange(of: isPresentingScan) { _, isPresented in
                 if !isPresented {
+                    Task { await viewModel.loadFoods() }
+                }
+            }
+            .onChange(of: loggingMeal) { _, meal in
+                if meal == nil {
                     Task { await viewModel.loadFoods() }
                 }
             }
@@ -99,6 +109,9 @@ struct FoodLibraryView: View {
                 let didSave = await viewModel.saveFood(id: food.id, draft: draft)
                 return didSave
             }
+        }
+        .sheet(item: $loggingMeal) { meal in
+            MealQuickLogSheet(meal: meal)
         }
     }
 

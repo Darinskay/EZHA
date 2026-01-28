@@ -45,6 +45,9 @@
 		9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */; };
 		9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A112FBE000000000001 /* LogMealSheet.swift */; };
 		9B5F0A142FBE000000000001 /* LogMealViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B5F0A122FBE000000000001 /* LogMealViewModel.swift */; };
+		9B6F0A152FC0000000000001 /* SavedMealIngredient.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6F0A162FC0000000000001 /* SavedMealIngredient.swift */; };
+		9B6F0A172FC0000000000001 /* MealQuickLogSheet.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6F0A182FC0000000000001 /* MealQuickLogSheet.swift */; };
+		9B6F0A192FC0000000000001 /* MealQuickLogViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B6F0A1A2FC0000000000001 /* MealQuickLogViewModel.swift */; };
 		9B7A8C012F9A100100000001 /* SavedFood.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B012F9A100100000001 /* SavedFood.swift */; };
 		9B7A8C022F9A100100000001 /* SavedFoodRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */; };
 		9B7A8C032F9A100100000001 /* FoodLibraryViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */; };
@@ -115,6 +118,9 @@
 		9B4C7A1B2FBA000000000001 /* SavedFoodQuickAddSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodQuickAddSheet.swift; sourceTree = "<group>"; };
 		9B5F0A112FBE000000000001 /* LogMealSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealSheet.swift; sourceTree = "<group>"; };
 		9B5F0A122FBE000000000001 /* LogMealViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LogMealViewModel.swift; sourceTree = "<group>"; };
+		9B6F0A162FC0000000000001 /* SavedMealIngredient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedMealIngredient.swift; sourceTree = "<group>"; };
+		9B6F0A182FC0000000000001 /* MealQuickLogSheet.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealQuickLogSheet.swift; sourceTree = "<group>"; };
+		9B6F0A1A2FC0000000000001 /* MealQuickLogViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MealQuickLogViewModel.swift; sourceTree = "<group>"; };
 		9B7A8B012F9A100100000001 /* SavedFood.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFood.swift; sourceTree = "<group>"; };
 		9B7A8B022F9A100100000001 /* SavedFoodRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavedFoodRepository.swift; sourceTree = "<group>"; };
 		9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FoodLibraryViewModel.swift; sourceTree = "<group>"; };
@@ -185,6 +191,7 @@
 				9B06072F2F1A5F5500825D3F /* FoodEntry.swift */,
 				9B0607802F1A5F5500825D3F /* Profile.swift */,
 				9B7A8B012F9A100100000001 /* SavedFood.swift */,
+				9B6F0A162FC0000000000001 /* SavedMealIngredient.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -220,6 +227,7 @@
 			children = (
 				9B0607372F1A5F5500825D3F /* AddLogViewModel.swift */,
 				9B5F0A122FBE000000000001 /* LogMealViewModel.swift */,
+				9B6F0A1A2FC0000000000001 /* MealQuickLogViewModel.swift */,
 				9B7A8B032F9A100100000001 /* FoodLibraryViewModel.swift */,
 				9B0607382F1A5F5500825D3F /* HistoryViewModel.swift */,
 				9B0607852F1A5F5500825D3F /* SettingsViewModel.swift */,
@@ -233,6 +241,7 @@
 			children = (
 				9B06073B2F1A5F5500825D3F /* AddLogSheet.swift */,
 				9B5F0A112FBE000000000001 /* LogMealSheet.swift */,
+				9B6F0A182FC0000000000001 /* MealQuickLogSheet.swift */,
 				9B06073C2F1A5F5500825D3F /* AuthLandingView.swift */,
 				A5B1F7A91008493A92881BEC /* DailyTargetEditorView.swift */,
 				1EF8A57377E94BB49796BE63 /* DailyTargetPickerView.swift */,
@@ -248,6 +257,7 @@
 				9B7A8B072F9A100100000001 /* SavedFoodRow.swift */,
 				9B0607412F1A5F5500825D3F /* SettingsView.swift */,
 				9B0607422F1A5F5500825D3F /* TodayView.swift */,
+				9B0293602F2A6C0100A9CF6F /* CameraPicker.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -478,6 +488,9 @@
 				9B4C7A1C2FBA000000000001 /* SavedFoodQuickAddSheet.swift in Sources */,
 				9B5F0A132FBE000000000001 /* LogMealSheet.swift in Sources */,
 				9B5F0A142FBE000000000001 /* LogMealViewModel.swift in Sources */,
+				9B6F0A152FC0000000000001 /* SavedMealIngredient.swift in Sources */,
+				9B6F0A172FC0000000000001 /* MealQuickLogSheet.swift in Sources */,
+				9B6F0A192FC0000000000001 /* MealQuickLogViewModel.swift in Sources */,
 				9B06074B2F1A5F5500825D3F /* AIAnalysisService.swift in Sources */,
 				9B06074C2F1A5F5500825D3F /* SessionManager.swift in Sources */,
 				9B06078F2F1A5F5500825D3F /* DailySummaryRepository.swift in Sources */,

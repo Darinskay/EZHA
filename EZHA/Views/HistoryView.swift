@@ -19,22 +19,37 @@ struct HistoryView: View {
                             .foregroundColor(.secondary)
                     }
                 }
-                ForEach(viewModel.dailySummaries, id: \.date) { summary in
-                    DisclosureGroup(isExpanded: binding(for: summary.date)) {
-                        HistoryEntriesList(
-                            date: summary.date,
-                            entriesWithItemsByDate: viewModel.entriesWithItemsByDate,
-                            loadingDates: viewModel.loadingDates,
-                            entryErrors: viewModel.entryErrors,
-                            expandedEntryIds: $expandedEntryIds
-                        )
-                    } label: {
-                        VStack(alignment: .leading, spacing: 6) {
-                            Text(viewModel.dateLabel(from: summary.date))
-                                .font(.headline)
-                            HistoryRow(summary: summary)
+                ForEach(Array(viewModel.dailySummaries.enumerated()), id: \.element.date) { index, summary in
+                    VStack(alignment: .leading, spacing: 8) {
+                        DisclosureGroup(isExpanded: binding(for: summary.date)) {
+                            HistoryEntriesList(
+                                date: summary.date,
+                                entriesWithItemsByDate: viewModel.entriesWithItemsByDate,
+                                loadingDates: viewModel.loadingDates,
+                                entryErrors: viewModel.entryErrors,
+                                expandedEntryIds: $expandedEntryIds
+                            )
+                        } label: {
+                            VStack(alignment: .leading, spacing: 6) {
+                                Text(viewModel.dateLabel(from: summary.date))
+                                    .font(.headline)
+                                HistoryRow(summary: summary)
+                            }
+                            .padding(.vertical, 4)
                         }
-                        .padding(.vertical, 4)
+
+                        if index == 0 && viewModel.isActiveDateToday {
+                            Button {
+                                Task {
+                                    await viewModel.goToDate(summary.date)
+                                    NotificationCenter.default.post(name: .activeDateChanged, object: nil)
+                                }
+                            } label: {
+                                Text("Go to this date")
+                                    .frame(maxWidth: .infinity, minHeight: 44)
+                            }
+                            .buttonStyle(.borderedProminent)
+                        }
                     }
                 }
             }
@@ -56,6 +71,11 @@ struct HistoryView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dayReset)) { _ in
+            Task {
+                await viewModel.loadHistory()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .activeDateChanged)) { _ in
             Task {
                 await viewModel.loadHistory()
             }

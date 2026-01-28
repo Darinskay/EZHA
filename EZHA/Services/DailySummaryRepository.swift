@@ -25,4 +25,15 @@ struct DailySummaryRepository {
             .execute()
             .value
     }
+
+    func fetchSummary(for date: String) async throws -> DailySummary? {
+        let summaries: [DailySummary] = try await supabase
+            .from("daily_summaries")
+            .select()
+            .eq("date", value: date)
+            .limit(1)
+            .execute()
+            .value
+        return summaries.first
+    }
 }

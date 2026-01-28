@@ -16,7 +16,7 @@ struct TodayView: View {
                 actionsSection
                 progressSection
             }
-            .navigationTitle("Today")
+            .navigationTitle(viewModel.title)
             .confirmationDialog(
                 "Delete entry?",
                 isPresented: $isShowingDeleteConfirm,
@@ -54,6 +54,11 @@ struct TodayView: View {
             }
         }
         .onReceive(NotificationCenter.default.publisher(for: .dayReset)) { _ in
+            Task {
+                await viewModel.loadToday()
+            }
+        }
+        .onReceive(NotificationCenter.default.publisher(for: .activeDateChanged)) { _ in
             Task {
                 await viewModel.loadToday()
             }
