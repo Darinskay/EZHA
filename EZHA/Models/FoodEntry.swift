@@ -34,6 +34,36 @@ struct FoodEntry: Identifiable, Codable, Hashable {
     }
 }
 
+struct FoodEntryItem: Identifiable, Codable, Hashable {
+    var id: UUID
+    var entryId: UUID
+    var userId: UUID
+    var name: String
+    var grams: Double
+    var calories: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+    var aiConfidence: Double?
+    var aiNotes: String
+    var createdAt: Date?
+
+    enum CodingKeys: String, CodingKey {
+        case id
+        case entryId = "entry_id"
+        case userId = "user_id"
+        case name
+        case grams
+        case calories
+        case protein
+        case carbs
+        case fat
+        case aiConfidence = "ai_confidence"
+        case aiNotes = "ai_notes"
+        case createdAt = "created_at"
+    }
+}
+
 struct MacroTotals: Hashable {
     var calories: Int
     var protein: Int
@@ -71,11 +101,42 @@ enum LogInputType: String, CaseIterable, Identifiable {
     }
 }
 
+enum LogEntryMode: String, CaseIterable, Identifiable {
+    case list = "List"
+    case description = "Description"
+
+    var id: String { rawValue }
+}
+
+struct MacroItemEstimate: Hashable {
+    var name: String
+    var grams: Double
+    var calories: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+    var confidence: Double?
+    var notes: String?
+}
+
 struct MacroEstimate: Hashable {
-    var calories: Int
-    var protein: Int
-    var carbs: Int
-    var fat: Int
-    var confidence: Double
+    var calories: Double
+    var protein: Double
+    var carbs: Double
+    var fat: Double
+    var confidence: Double?
     var source: String
+    var foodName: String?
+    var notes: String
+    var items: [MacroItemEstimate]
+}
+
+/// A food entry with its associated items for display in Today/History views
+struct FoodEntryWithItems: Identifiable, Hashable {
+    let entry: FoodEntry
+    let items: [FoodEntryItem]
+
+    var id: UUID { entry.id }
+
+    var hasItems: Bool { !items.isEmpty }
 }

@@ -5,15 +5,14 @@ struct MacroProgressTable: View {
     let eaten: MacroTotals
 
     var body: some View {
-        VStack(spacing: 12) {
+        VStack(spacing: 8) {
             MacroRow(label: "Calories", target: targets.calories, eaten: eaten.calories)
             MacroRow(label: "Protein", target: targets.protein, eaten: eaten.protein, unit: "g")
             MacroRow(label: "Carbs", target: targets.carbs, eaten: eaten.carbs, unit: "g")
             MacroRow(label: "Fat", target: targets.fat, eaten: eaten.fat, unit: "g")
         }
-        .padding()
-        .background(Color(.secondarySystemBackground))
-        .clipShape(RoundedRectangle(cornerRadius: 12))
+        .padding(.vertical, 10)
+        .padding(.horizontal, 16)
     }
 }
 
@@ -32,15 +31,26 @@ private struct MacroRow: View {
         return Double(eaten) / Double(target)
     }
 
+    private var percentageTextColor: Color {
+        let percent = Int((percentage * 100).rounded())
+        if percent >= 101 {
+            return .red
+        }
+        if percent >= 81 {
+            return .green
+        }
+        return .secondary
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
                 Text(label)
                     .font(.headline)
                 Spacer()
-                Text("\(Int(percentage * 100))%")
+                Text("\(Int(round(percentage * 100)))%")
                     .font(.subheadline)
-                    .foregroundColor(.secondary)
+                    .foregroundColor(percentageTextColor)
             }
             HStack {
                 Text("Target: \(target)\(unit)")

@@ -4,7 +4,12 @@ import Supabase
 enum SupabaseConfig {
     static let client = SupabaseClient(
         supabaseURL: supabaseURL,
-        supabaseKey: supabaseAnonKey
+        supabaseKey: supabaseAnonKey,
+        options: SupabaseClientOptions(
+            auth: .init(
+                emitLocalSessionAsInitialSession: true
+            )
+        )
     )
 
     static let oauthRedirectScheme = infoPlistValue(for: "SUPABASE_OAUTH_CALLBACK_SCHEME")
@@ -25,8 +30,33 @@ enum SupabaseConfig {
         return url
     }
 
+    static var url: URL {
+        supabaseURL
+    }
+
     private static var supabaseAnonKey: String {
         infoPlistValue(for: "SUPABASE_ANON_KEY")
+    }
+
+    static var anonKey: String {
+        supabaseAnonKey
+    }
+
+    /// Buffer time before token expiry to proactively refresh (5 minutes)
+    private static let refreshBufferSeconds: TimeInterval = 300
+
+    static func currentSession() async throws -> Session {
+        var session = try await client.auth.session
+        // Proactively refresh if token expires within buffer time
+        let expiresAt = Date(timeIntervalSince1970: TimeInterval(session.expiresAt))
+        if session.isExpired || expiresAt.timeIntervalSinceNow < refreshBufferSeconds {
+            session = try await client.auth.refreshSession()
+        }
+        return session
+    }
+
+    static func currentUserId() async throws -> UUID {
+        try await currentSession().user.id
     }
 
     private static func infoPlistValue(for key: String) -> String {

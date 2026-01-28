@@ -1,21 +1,38 @@
 import Foundation
+import SwiftUI
 
 @MainActor
 final class HistoryViewModel: ObservableObject {
     @Published private(set) var dailySummaries: [DailySummary] = []
     @Published private(set) var isLoading = false
     @Published var errorMessage: String?
+    @Published private(set) var entriesWithItemsByDate: [String: [FoodEntryWithItems]] = [:]
+    @Published private(set) var loadingDates: Set<String> = []
+    @Published private(set) var entryErrors: [String: String] = [:]
+    @Published private(set) var activeDate: String = ""
+
+    var isActiveDateToday: Bool {
+        activeDate == Self.dateFormatter.string(from: Date())
+    }
+
+    /// Convenience accessor for just entries (without items) - for backward compatibility
+    var entriesByDate: [String: [FoodEntry]] {
+        entriesWithItemsByDate.mapValues { $0.map { $0.entry } }
+    }
 
     let daysToShow: Int = 60
     private let summaryRepository: DailySummaryRepository
     private let profileRepository: ProfileRepository
+    private let entryRepository: FoodEntryRepository
 
     init(
         summaryRepository: DailySummaryRepository = DailySummaryRepository(),
-        profileRepository: ProfileRepository = ProfileRepository()
+        profileRepository: ProfileRepository = ProfileRepository(),
+        entryRepository: FoodEntryRepository = FoodEntryRepository()
     ) {
         self.summaryRepository = summaryRepository
         self.profileRepository = profileRepository
+        self.entryRepository = entryRepository
     }
 
     func loadHistory() async {
@@ -24,10 +41,15 @@ final class HistoryViewModel: ObservableObject {
         defer { isLoading = false }
 
         do {
+            entriesWithItemsByDate = [:]
+            loadingDates = []
+            entryErrors = [:]
             guard let profile = try await profileRepository.fetchProfile() else {
+                activeDate = ""
                 dailySummaries = []
                 return
             }
+            activeDate = profile.activeDate
             let endDate = Self.dateFromString(profile.activeDate)
             let end = Calendar.current.date(byAdding: .day, value: -1, to: endDate ?? Date()) ?? Date()
             guard let start = Calendar.current.date(byAdding: .day, value: -(daysToShow - 1), to: end) else {
@@ -50,50 +72,56 @@ final class HistoryViewModel: ObservableObject {
         }
     }
 
+    func loadEntries(for dateString: String) async {
+        if entriesWithItemsByDate[dateString] != nil || loadingDates.contains(dateString) {
+            return
+        }
+        loadingDates.insert(dateString)
+        entryErrors[dateString] = nil
+        defer { loadingDates.remove(dateString) }
+
+        guard let date = Self.dateFromString(dateString) else {
+            entryErrors[dateString] = "Unable to read this date."
+            entriesWithItemsByDate[dateString] = []
+            return
+        }
+
+        do {
+            let entriesWithItems = try await entryRepository.fetchEntriesWithItems(
+                for: date,
+                timeZone: TimeZone.current
+            )
+            entriesWithItemsByDate[dateString] = entriesWithItems
+        } catch {
+            entryErrors[dateString] = "Unable to load entries."
+            entriesWithItemsByDate[dateString] = []
+        }
+    }
+
+    func goToDate(_ dateString: String) async {
+        isLoading = true
+        errorMessage = nil
+        defer { isLoading = false }
+
+        do {
+            try await profileRepository.updateActiveDate(dateString)
+            await loadHistory()
+        } catch {
+            errorMessage = "Unable to switch to that date."
+        }
+    }
+
     private static func mergeSummaries(
         summaries: [DailySummary],
         startDate: Date,
         endDate: Date
     ) -> [DailySummary] {
-        let calendar = Calendar.current
-        var summaryByDate: [String: DailySummary] = [:]
-        for summary in summaries {
-            summaryByDate[summary.date] = summary
-        }
-        let fallbackUserId = summaries.first?.userId ?? UUID()
-
-        var results: [DailySummary] = []
-        var day = startDate
-        while day <= endDate {
-            let dateString = dateFormatter.string(from: day)
-            if let summary = summaryByDate[dateString] {
-                results.append(summary)
-            } else {
-                results.append(
-                    DailySummary(
-                        userId: fallbackUserId,
-                        date: dateString,
-                        calories: 0,
-                        protein: 0,
-                        carbs: 0,
-                        fat: 0,
-                        caloriesTarget: 0,
-                        proteinTarget: 0,
-                        carbsTarget: 0,
-                        fatTarget: 0,
-                        hasData: false,
-                        createdAt: nil
-                    )
-                )
-            }
-            guard let next = calendar.date(byAdding: .day, value: 1, to: day) else { break }
-            day = next
-        }
-
-        return results.reversed()
+        summaries
+            .filter { $0.hasData }
+            .sorted { $0.date > $1.date }
     }
 
-    private static func dateFromString(_ value: String) -> Date? {
+    static func dateFromString(_ value: String) -> Date? {
         dateFormatter.date(from: value)
     }
 

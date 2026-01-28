@@ -30,8 +30,10 @@ struct ProfileRepository {
         fat: Double
     ) async throws {
         let userId = try await currentUserId()
-        let activeDate = (try? await fetchProfile())?.activeDate
+        let existingProfile = try? await fetchProfile()
+        let activeDate = existingProfile?.activeDate
             ?? Self.dateFormatter.string(from: Date())
+        let activeTargetId = existingProfile?.activeTargetId
         let payload = Profile(
             userId: userId,
             caloriesTarget: calories,
@@ -39,6 +41,7 @@ struct ProfileRepository {
             carbsTarget: carbs,
             fatTarget: fat,
             activeDate: activeDate,
+            activeTargetId: activeTargetId,
             createdAt: Date(),
             updatedAt: Date()
         )
@@ -67,6 +70,15 @@ struct ProfileRepository {
             .execute()
     }
 
+    func updateActiveTarget(_ targetId: UUID) async throws {
+        let userId = try await currentUserId()
+        try await supabase
+            .from("profiles")
+            .update(["active_target_id": targetId.uuidString])
+            .eq("user_id", value: userId.uuidString)
+            .execute()
+    }
+
     func fetchActiveDate() async throws -> String {
         let userId = try await currentUserId()
         let profile: Profile = try await supabase
@@ -80,7 +92,7 @@ struct ProfileRepository {
     }
 
     private func currentUserId() async throws -> UUID {
-        try await supabase.auth.session.user.id
+        try await SupabaseConfig.currentUserId()
     }
 
     private static let dateFormatter: DateFormatter = {

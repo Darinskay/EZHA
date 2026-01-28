@@ -12,3 +12,6 @@
 - `SUPABASE_URL`: [PLACEHOLDER] Supabase project URL
 - `SUPABASE_ANON_KEY`: [PLACEHOLDER] Supabase anon key
 - `SUPABASE_OAUTH_REDIRECT_URL`: [PLACEHOLDER] app scheme callback
+- `OPENAI_API_KEY`: [PLACEHOLDER] OpenAI API key for Supabase Edge Functions
+- `OPENAI_MODEL`: [PLACEHOLDER] Optional default model (e.g., gpt-4o-mini)
+- `FOOD_IMAGES_BUCKET`: [PLACEHOLDER] Optional bucket override (default: food-images)

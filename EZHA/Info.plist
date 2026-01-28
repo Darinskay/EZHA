@@ -27,7 +27,7 @@
 			<string>Supabase OAuth</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>[PLACEHOLDER] com.example.ezha</string>
+				<string>daryna.Ezha</string>
 			</array>
 		</dict>
 	</array>
@@ -35,6 +35,8 @@
 	<dict/>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>Allow access to your photos to attach meal images.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Allow camera access to take photos of your meals and nutrition labels.</string>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

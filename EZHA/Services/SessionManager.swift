@@ -1,6 +1,7 @@
 import Foundation
 import Supabase
 import SwiftUI
+import UIKit
 
 @MainActor
 final class SessionManager: ObservableObject {
@@ -10,15 +11,20 @@ final class SessionManager: ObservableObject {
 
     private let supabase: SupabaseClient
     private var authStateTask: Task<Void, Never>?
+    private var foregroundObserver: NSObjectProtocol?
 
     init(supabase: SupabaseClient = SupabaseConfig.client) {
         self.supabase = supabase
         observeAuthChanges()
+        observeAppForeground()
         Task { await refreshSession() }
     }
 
     deinit {
         authStateTask?.cancel()
+        if let foregroundObserver {
+            NotificationCenter.default.removeObserver(foregroundObserver)
+        }
     }
 
     func signIn(email: String, password: String) async {
@@ -56,9 +62,21 @@ final class SessionManager: ObservableObject {
         }
     }
 
+    private func observeAppForeground() {
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            guard let self else { return }
+            Task { await self.refreshSession() }
+        }
+    }
+
     private func refreshSession() async {
         do {
-            _ = try await supabase.auth.session
+            // Use centralized session management with proactive refresh
+            _ = try await SupabaseConfig.currentSession()
             isAuthenticated = true
         } catch {
             isAuthenticated = false
