@@ -10,21 +10,26 @@ struct MainTabView: View {
                     Label("Today", systemImage: "sun.max")
                 }
                 .tag(0)
+            SuggestionsView()
+                .tabItem {
+                    Label("Suggestions", systemImage: "sparkles")
+                }
+                .tag(1)
             FoodLibraryView()
                 .tabItem {
                     Label("Library", systemImage: "bookmark")
                 }
-                .tag(1)
+                .tag(2)
             HistoryView()
                 .tabItem {
                     Label("History", systemImage: "calendar")
                 }
-                .tag(2)
+                .tag(3)
             SettingsView()
                 .tabItem {
                     Label("Settings", systemImage: "gear")
                 }
-                .tag(3)
+                .tag(4)
         }
         .onReceive(NotificationCenter.default.publisher(for: .switchToTodayTab)) { _ in
             selectedTab = 0

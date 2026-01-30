@@ -6,6 +6,9 @@ const corsHeaders = {
 };
 
 serve(async (req) => {
+  console.log("ai-estimate hit", new Date().toISOString());
+  console.log("method", req.method);
+  console.log("auth header present", !!req.headers.get("authorization"));
   if (req.method === "OPTIONS") {
     return new Response("ok", { headers: corsHeaders });
   }
@@ -32,28 +35,34 @@ serve(async (req) => {
     return jsonError("Missing required field: OPENAI_API_KEY");
   }
 
+  const verifyJwt = (Deno.env.get("VERIFY_JWT") ?? "false").toLowerCase() === "true";
+  let accessToken = "";
   const authHeader = req.headers.get("authorization") ?? "";
   const tokenMatch = authHeader.match(/^Bearer\s+(.+)$/i);
-  if (!tokenMatch) {
-    return jsonError("Missing required field: Authorization");
+  if (tokenMatch) {
+    accessToken = tokenMatch[1];
   }
+  if (verifyJwt) {
+    if (!tokenMatch) {
+      return jsonError("Missing required field: Authorization");
+    }
 
-  const supabaseUrl = Deno.env.get("SUPABASE_URL");
-  const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
-  if (!supabaseUrl || !supabaseAnonKey) {
-    return jsonError("Missing required field: SUPABASE_URL or SUPABASE_ANON_KEY");
-  }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return jsonError("Missing required field: SUPABASE_URL or SUPABASE_ANON_KEY");
+    }
+    const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${accessToken}`,
+        apikey: supabaseAnonKey,
+      },
+    });
 
-  const authResponse = await fetch(`${supabaseUrl}/auth/v1/user`, {
-    method: "GET",
-    headers: {
-      Authorization: `Bearer ${tokenMatch[1]}`,
-      apikey: supabaseAnonKey,
-    },
-  });
-
-  if (!authResponse.ok) {
-    return jsonError("Invalid JWT");
+    if (!authResponse.ok) {
+      return jsonError("Invalid JWT");
+    }
   }
 
   const model = payload.model ??
@@ -66,11 +75,19 @@ serve(async (req) => {
   const prompt = buildPrompt(text, items, parsedWeight, payload.inputType ?? "text", imagePath);
   let imageUrl: string | null = null;
   if (imagePath) {
+    if (!accessToken) {
+      return jsonError("Missing required field: Authorization");
+    }
+    const supabaseUrl = Deno.env.get("SUPABASE_URL");
+    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY");
+    if (!supabaseUrl || !supabaseAnonKey) {
+      return jsonError("Missing required field: SUPABASE_URL or SUPABASE_ANON_KEY");
+    }
     try {
       imageUrl = await createSignedImageUrl({
         supabaseUrl,
         supabaseAnonKey,
-        accessToken: tokenMatch[1],
+        accessToken,
         imagePath,
         bucket: Deno.env.get("FOOD_IMAGES_BUCKET") ?? "food-images",
       });
@@ -92,6 +109,7 @@ serve(async (req) => {
     });
   }
 
+  console.log("calling OpenAI", { model, baseUrl, hasImage: Boolean(imageUrl) });
   const response = await fetch(`${baseUrl}/responses`, {
     method: "POST",
     headers: {
@@ -101,6 +119,7 @@ serve(async (req) => {
     body: JSON.stringify({
       model,
       temperature: isLabelInput ? 0.0 : 0.2,
+      max_output_tokens: 400,
       text: { format: { type: "json_object" } },
       instructions:
         "You are a nutrition estimation assistant. Return only valid JSON. " +
@@ -120,6 +139,7 @@ serve(async (req) => {
     }),
   });
 
+  console.log("OpenAI response status", response.status);
   if (!response.ok) {
     const errorText = await response.text();
     return jsonError(
@@ -587,6 +607,7 @@ async function streamEstimate({
 }): Promise<Response> {
   const encoder = new TextEncoder();
   const decoder = new TextDecoder();
+  const timeoutMs = Number(Deno.env.get("STREAM_TIMEOUT_MS") ?? "20000");
 
   const sendEvent = (controller: ReadableStreamDefaultController, event: string, data: unknown) => {
     const payload = JSON.stringify(data);
@@ -595,7 +616,9 @@ async function streamEstimate({
 
   const stream = new ReadableStream({
     start: async (controller) => {
+      const startedAt = Date.now();
       try {
+        console.log("streaming OpenAI request", { model, baseUrl, hasImage: Boolean(imageUrl) });
         sendEvent(controller, "status", { stage: "requesting_model" });
 
         const response = await fetch(`${baseUrl}/responses`, {
@@ -607,6 +630,7 @@ async function streamEstimate({
           body: JSON.stringify({
             model,
             temperature: isLabelInput ? 0.0 : 0.2,
+            max_output_tokens: 400,
             text: { format: { type: "json_object" } },
             stream: true,
             instructions:
@@ -627,6 +651,7 @@ async function streamEstimate({
           }),
         });
 
+        console.log("streaming OpenAI response status", response.status);
         if (!response.ok || !response.body) {
           const errorText = await response.text();
           sendEvent(controller, "error", {
@@ -639,8 +664,13 @@ async function streamEstimate({
         const reader = response.body.getReader();
         let buffer = "";
         let outputText = "";
+        let timedOut = false;
 
         while (true) {
+          if (Date.now() - startedAt > timeoutMs) {
+            timedOut = true;
+            break;
+          }
           const { value, done } = await reader.read();
           if (done) break;
           buffer += decoder.decode(value, { stream: true });
@@ -675,6 +705,13 @@ async function streamEstimate({
 
             separator = nextSseSeparator(buffer);
           }
+        }
+
+        if (timedOut) {
+          console.log("stream timeout");
+          sendEvent(controller, "error", { error: "Model response timed out." });
+          controller.close();
+          return;
         }
 
         sendEvent(controller, "status", { stage: "finalizing" });

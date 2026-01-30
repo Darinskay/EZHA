@@ -234,49 +234,39 @@ final class LogMealViewModel: ObservableObject {
             }
 
             analysisStage = .requestingModel
-            let stream = try await analysisService.analyzeStream(
+            if pendingImagePath == nil && !description.isEmpty {
+                let direct = try await analysisService.analyze(
+                    text: description,
+                    items: nil,
+                    imagePath: nil,
+                    inputType: analysisInputType
+                )
+                estimate = direct
+                streamPreview = ""
+                analysisStage = .idle
+                showSaveToLibrary = true
+                errorMessage = nil
+                if isLabelPhoto {
+                    labelBaseEstimate = direct
+                    applyLabelScaling()
+                }
+                return
+            }
+
+            let direct = try await analysisService.analyze(
                 text: description.isEmpty ? "" : description,
                 items: nil,
                 imagePath: pendingImagePath,
                 inputType: analysisInputType
             )
-
-            for try await event in stream {
-                switch event {
-                case .status(let stage):
-                    analysisStage = AnalysisStage(from: stage)
-                case .delta(let delta):
-                    analysisStage = .streaming
-                    appendStream(delta)
-                case .result(let result):
-                    analysisStage = .finalizing
-                    estimate = result
-                    streamPreview = ""
-                    showSaveToLibrary = true
-                    if isLabelPhoto {
-                        labelBaseEstimate = result
-                        applyLabelScaling()
-                    }
-                case .error(let message):
-                    throw AnalysisError.remote(message)
-                }
-            }
-
-            if estimate == nil {
-                let fallback = try await analysisService.analyze(
-                    text: description.isEmpty ? "" : description,
-                    items: nil,
-                    imagePath: pendingImagePath,
-                    inputType: analysisInputType
-                )
-                estimate = fallback
-                streamPreview = ""
-                analysisStage = .idle
-                showSaveToLibrary = true
-                if isLabelPhoto {
-                    labelBaseEstimate = fallback
-                    applyLabelScaling()
-                }
+            estimate = direct
+            streamPreview = ""
+            analysisStage = .idle
+            showSaveToLibrary = true
+            errorMessage = nil
+            if isLabelPhoto {
+                labelBaseEstimate = direct
+                applyLabelScaling()
             }
         } catch {
             errorMessage = error.localizedDescription

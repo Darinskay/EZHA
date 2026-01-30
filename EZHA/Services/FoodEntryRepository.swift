@@ -12,6 +12,14 @@ struct FoodEntryRepository {
         var payload = entry
         let userId = try await currentUserId()
         payload.userId = userId
+        let allowedInputTypes: Set<String> = ["photo", "text", "photo+text"]
+        if !allowedInputTypes.contains(payload.inputType) {
+            payload.inputType = "text"
+        }
+        let allowedSources: Set<String> = ["food_photo", "label_photo", "text", "unknown", "library"]
+        if !allowedSources.contains(payload.aiSource) {
+            payload.aiSource = "unknown"
+        }
         try await supabase
             .from("food_entries")
             .insert(payload)

@@ -147,57 +147,47 @@ final class AddLogViewModel: ObservableObject {
             }
 
             analysisStage = .requestingModel
-            let stream = try await analysisService.analyzeStream(
+            if pendingImagePath == nil && itemInputs.isEmpty && !description.isEmpty {
+                let direct = try await analysisService.analyze(
+                    text: description,
+                    items: nil,
+                    imagePath: nil,
+                    inputType: analysisInputType
+                )
+                estimate = direct
+                caloriesText = formatMacro(direct.calories)
+                proteinText = formatMacro(direct.protein)
+                carbsText = formatMacro(direct.carbs)
+                fatText = formatMacro(direct.fat)
+                streamPreview = ""
+                analysisStage = .idle
+                showSaveToLibrary = true
+                errorMessage = nil
+                if isLabelPhoto {
+                    labelBaseEstimate = direct
+                    applyLabelScaling()
+                }
+                return
+            }
+
+            let direct = try await analysisService.analyze(
                 text: description,
                 items: itemInputs.isEmpty ? nil : itemInputs,
                 imagePath: pendingImagePath,
                 inputType: analysisInputType
             )
-
-            for try await event in stream {
-                switch event {
-                case .status(let stage):
-                    analysisStage = AnalysisStage(from: stage)
-                case .delta(let delta):
-                    analysisStage = .streaming
-                    appendStream(delta)
-                case .result(let result):
-                    analysisStage = .finalizing
-                    estimate = result
-                    caloriesText = formatMacro(result.calories)
-                    proteinText = formatMacro(result.protein)
-                    carbsText = formatMacro(result.carbs)
-                    fatText = formatMacro(result.fat)
-                    streamPreview = ""
-                    showSaveToLibrary = true
-                    if isLabelPhoto {
-                        labelBaseEstimate = result
-                        applyLabelScaling()
-                    }
-                case .error(let message):
-                    throw AnalysisError.remote(message)
-                }
-            }
-
-            if estimate == nil {
-                let fallback = try await analysisService.analyze(
-                    text: description,
-                    items: itemInputs.isEmpty ? nil : itemInputs,
-                    imagePath: pendingImagePath,
-                    inputType: analysisInputType
-                )
-                estimate = fallback
-                caloriesText = formatMacro(fallback.calories)
-                proteinText = formatMacro(fallback.protein)
-                carbsText = formatMacro(fallback.carbs)
-                fatText = formatMacro(fallback.fat)
-                streamPreview = ""
-                analysisStage = .idle
-                showSaveToLibrary = true
-                if isLabelPhoto {
-                    labelBaseEstimate = fallback
-                    applyLabelScaling()
-                }
+            estimate = direct
+            caloriesText = formatMacro(direct.calories)
+            proteinText = formatMacro(direct.protein)
+            carbsText = formatMacro(direct.carbs)
+            fatText = formatMacro(direct.fat)
+            streamPreview = ""
+            analysisStage = .idle
+            showSaveToLibrary = true
+            errorMessage = nil
+            if isLabelPhoto {
+                labelBaseEstimate = direct
+                applyLabelScaling()
             }
         } catch {
             errorMessage = error.localizedDescription

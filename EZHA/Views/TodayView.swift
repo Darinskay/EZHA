@@ -2,8 +2,7 @@ import SwiftUI
 
 struct TodayView: View {
     @StateObject private var viewModel = TodayViewModel()
-    @State private var isPresentingAddLog = false
-    @State private var isPresentingLogMeal = false
+    @State private var isPresentingLogSheet = false
     @State private var entryPendingDelete: FoodEntry?
     @State private var isShowingDeleteConfirm = false
     @State private var isChoosingTarget = false
@@ -36,11 +35,8 @@ struct TodayView: View {
         }
         .dismissKeyboardOnTap()
         .keyboardDoneToolbar()
-        .sheet(isPresented: $isPresentingAddLog) {
-            AddLogSheet()
-        }
-        .sheet(isPresented: $isPresentingLogMeal) {
-            LogMealSheet()
+        .sheet(isPresented: $isPresentingLogSheet) {
+            UnifiedLogSheet()
         }
         .fullScreenCover(isPresented: $isChoosingTarget) {
             targetPicker
@@ -108,32 +104,18 @@ struct TodayView: View {
     private var actionsSection: some View {
         VStack(spacing: 8) {
             Button {
-                isPresentingAddLog = true
+                isPresentingLogSheet = true
             } label: {
                 HStack {
                     Image(systemName: "plus.circle.fill")
                         .imageScale(.large)
-                    Text("Add log")
+                    Text("Log your Meal")
                 }
                 .frame(maxWidth: .infinity, minHeight: 44)
             }
             .buttonStyle(.borderedProminent)
             .tint(Color(red: 0.8, green: 0.2, blue: 0.6))
             .foregroundStyle(.white)
-            .disabled(viewModel.isLoading)
-
-            Button {
-                isPresentingLogMeal = true
-            } label: {
-                HStack {
-                    Image(systemName: "fork.knife")
-                        .imageScale(.large)
-                    Text("Log meal")
-                }
-                .frame(maxWidth: .infinity, minHeight: 44)
-            }
-            .buttonStyle(.bordered)
-            .tint(.indigo)
             .disabled(viewModel.isLoading)
 
             Button {
